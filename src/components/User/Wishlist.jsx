@@ -11,19 +11,21 @@ const Wishlist = () => {
 
     return (
         <div>
-            <h2 style={{ marginBottom: '1.5rem' }}>My Wishlist</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1.5rem' }}>
+            <h2 className="section-title">My Wishlist</h2>
+            <div className="wishlist-grid">
                 {wishlistItems.map(item => (
-                    <div key={item.id} style={{ border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
-                        <div style={{ height: '150px', backgroundColor: '#F3F4F6' }}></div>
-                        <div style={{ padding: '1rem' }}>
-                            <h3 style={{ fontSize: '1rem', marginBottom: '0.5rem' }}>{item.name}</h3>
-                            <div style={{ fontWeight: 'bold', color: 'var(--color-primary)', marginBottom: '1rem' }}>${item.price.toFixed(2)}</div>
-                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <div key={item.id} className="wishlist-item">
+                        <div className="wishlist-image">
+                            {/* Placeholder for image */}
+                        </div>
+                        <div className="wishlist-content">
+                            <h3 className="wishlist-name">{item.name}</h3>
+                            <div className="wishlist-price">${item.price.toFixed(2)}</div>
+                            <div className="wishlist-actions">
                                 <Button variant="primary" size="small" style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.25rem' }}>
                                     <ShoppingCart size={16} /> Add
                                 </Button>
-                                <button style={{ padding: '0.5rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', backgroundColor: 'white', color: 'var(--color-error)', cursor: 'pointer' }}>
+                                <button className="btn-remove">
                                     <Trash2 size={16} />
                                 </button>
                             </div>

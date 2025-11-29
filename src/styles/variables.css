@@ -1,7 +1,9 @@
 :root {
   /* Brand Colors */
-  --color-primary: #458728;
-  --color-primary-dark: #366b20;
+  --color-primary: #35661e;
+  /* Darker Green */
+  --color-primary-dark: #264a15;
+  /* Even Darker Green */
   --color-secondary: #D0DB61;
   --color-accent: #F9EEBD;
 
@@ -12,8 +14,10 @@
 
   /* UI Colors */
   --color-bg-body: #FEFCD0;
-  --color-bg-card: #FFFFFF;
-  --color-border: #E5E7EB;
+  --color-bg-card: #FFFEF2;
+  /* Warmer Cream White */
+  --color-border: #E8E6D9;
+  /* Warm Gray Border */
   --color-error: #EF4444;
   --color-success: #10B981;
 

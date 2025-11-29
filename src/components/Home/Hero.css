@@ -1,0 +1,242 @@
+/* Hero.css */
+.hero-section {
+    position: relative;
+    width: 100%;
+    height: 90vh;
+    /* Immersive full height */
+    min-height: 600px;
+    overflow: hidden;
+    background-color: var(--color-background);
+}
+
+.hero-slider {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.7s cubic-bezier(0.645, 0.045, 0.355, 1);
+    /* Smooth custom bezier */
+}
+
+.hero-slide {
+    min-width: 100%;
+    height: 100%;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+/* Background Image with Ken Burns Effect */
+.hero-bg-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    transform: scale(1);
+    transition: transform 6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.hero-slide.active .hero-bg-image {
+    transform: scale(1.15);
+}
+
+.hero-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to bottom,
+            rgba(0, 0, 0, 0.3) 0%,
+            rgba(0, 0, 0, 0.5) 50%,
+            rgba(0, 0, 0, 0.8) 100%);
+    z-index: 1;
+}
+
+.hero-content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    color: white;
+    max-width: 900px;
+    padding: 0 2rem;
+}
+
+/* Staggered Text Animations */
+.hero-title {
+    font-size: 4.5rem;
+    font-weight: 800;
+    margin-bottom: 1.5rem;
+    line-height: 1.1;
+    text-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    letter-spacing: -0.02em;
+}
+
+.hero-title span {
+    opacity: 0;
+    transform: translateY(40px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+    display: inline-block;
+}
+
+.hero-slide.active .hero-title span {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Stagger delay for words (approximate for first few words) */
+.hero-slide.active .hero-title span:nth-child(1) {
+    transition-delay: 0.2s;
+}
+
+.hero-slide.active .hero-title span:nth-child(2) {
+    transition-delay: 0.25s;
+}
+
+.hero-slide.active .hero-title span:nth-child(3) {
+    transition-delay: 0.3s;
+}
+
+.hero-slide.active .hero-title span:nth-child(4) {
+    transition-delay: 0.35s;
+}
+
+.hero-slide.active .hero-title span:nth-child(5) {
+    transition-delay: 0.4s;
+}
+
+.hero-slide.active .hero-title span:nth-child(6) {
+    transition-delay: 0.45s;
+}
+
+.hero-subtitle {
+    font-size: 1.5rem;
+    margin-bottom: 2.5rem;
+    line-height: 1.6;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.8s ease 0.6s, transform 0.8s ease 0.6s;
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.hero-slide.active .hero-subtitle {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.hero-buttons {
+    display: flex;
+    gap: 1.5rem;
+    justify-content: center;
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.8s ease 0.8s, transform 0.8s ease 0.8s;
+}
+
+.hero-slide.active .hero-buttons {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Custom Button Styles for Hero */
+.hero-btn-primary {
+    padding: 1rem 2.5rem !important;
+    font-size: 1.125rem !important;
+    font-weight: 600 !important;
+    border-radius: 50px !important;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2) !important;
+    transition: transform 0.3s ease, box-shadow 0.3s ease !important;
+}
+
+.hero-btn-primary:hover {
+    transform: translateY(-3px) !important;
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3) !important;
+}
+
+.hero-btn-secondary {
+    padding: 1rem 2.5rem !important;
+    font-size: 1.125rem !important;
+    font-weight: 600 !important;
+    border-radius: 50px !important;
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    backdrop-filter: blur(10px);
+    color: white !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    transition: all 0.3s ease !important;
+}
+
+.hero-btn-secondary:hover {
+    background-color: rgba(255, 255, 255, 0.2) !important;
+    transform: translateY(-3px) !important;
+}
+
+/* Controls */
+.hero-controls {
+    position: absolute;
+    bottom: 3rem;
+    left: 0;
+    width: 100%;
+    z-index: 10;
+    display: flex;
+    justify-content: center;
+}
+
+.hero-dots {
+    display: flex;
+    gap: 1rem;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 0.75rem 1.5rem;
+    border-radius: 50px;
+    backdrop-filter: blur(5px);
+}
+
+.hero-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.3);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.hero-dot.active {
+    background-color: white;
+    transform: scale(1.2);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    .hero-section {
+        height: 80vh;
+    }
+
+    .hero-title {
+        font-size: 2.5rem;
+    }
+
+    .hero-subtitle {
+        font-size: 1.125rem;
+        margin-bottom: 2rem;
+    }
+
+    .hero-buttons {
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .hero-btn-primary,
+    .hero-btn-secondary {
+        width: 100%;
+        max-width: 280px;
+    }
+}

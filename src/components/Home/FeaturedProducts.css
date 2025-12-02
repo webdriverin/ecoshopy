@@ -6,6 +6,10 @@
     /* Global perspective */
 }
 
+.featured-products-section.no-padding {
+    padding: 0;
+}
+
 .featured-scroll-container {
     display: flex;
     gap: 2rem;
@@ -23,7 +27,7 @@
 }
 
 .featured-product-card-wrapper {
-    flex: 0 0 300px;
+    flex: 0 0 220px;
     scroll-snap-align: center;
     perspective: 1500px;
     /* Individual perspective for each card */
@@ -61,7 +65,7 @@
 }
 
 .featured-image-container {
-    height: 300px;
+    height: 180px;
     overflow: hidden;
     position: relative;
     border-radius: var(--radius-lg) var(--radius-lg) 0 0;
@@ -157,11 +161,11 @@
     }
 
     .featured-product-card-wrapper {
-        flex: 0 0 240px;
+        flex: 0 0 180px;
         /* Slightly smaller cards */
     }
 
     .featured-image-container {
-        height: 220px;
+        height: 150px;
     }
 }

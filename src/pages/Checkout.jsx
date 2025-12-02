@@ -2,9 +2,13 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../components/UI/Button';
 import { CreditCard, Truck, ShieldCheck } from 'lucide-react';
+import { useCart } from '../context/CartContext';
+import FirebaseService from '../services/FirebaseService';
 
 const Checkout = () => {
     const navigate = useNavigate();
+    const { cart, getCartTotal, clearCart } = useCart();
+    const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
         firstName: '',
         lastName: '',
@@ -20,39 +24,57 @@ const Checkout = () => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        // Simulate Razorpay payment
-        const options = {
-            key: "YOUR_RAZORPAY_KEY_ID", // Enter the Key ID generated from the Dashboard
-            amount: "50000", // Amount is in currency subunits. Default currency is INR. Hence, 50000 refers to 50000 paise
-            currency: "USD",
-            name: "Ecoshopy",
-            description: "Test Transaction",
-            image: "https://example.com/your_logo",
-            handler: function () {
-                // alert(response.razorpay_payment_id);
-                // alert(response.razorpay_order_id);
-                // alert(response.razorpay_signature)
-                navigate('/order-success');
-            },
-            prefill: {
-                name: `${formData.firstName} ${formData.lastName}`,
-                email: formData.email,
-                contact: formData.phone
-            },
-            theme: {
-                color: "#1DBF73"
-            }
-        };
+        setLoading(true);
 
-        // In a real app, we would open Razorpay here. 
-        // For this demo, we'll just simulate a successful redirect.
-        console.log("Processing payment with options:", options);
-        setTimeout(() => {
+        // Simulate Razorpay payment (or skip for now)
+        // In real app, verify payment first, then create order
+
+        try {
+            const orderData = {
+                customerName: `${formData.firstName} ${formData.lastName}`,
+                email: formData.email,
+                phone: formData.phone,
+                address: {
+                    street: formData.address,
+                    city: formData.city,
+                    zip: formData.zip,
+                    country: formData.country || 'India'
+                },
+                items: cart.map(item => ({
+                    productId: item.id,
+                    name: item.name,
+                    price: item.price,
+                    quantity: item.quantity,
+                    image: item.imageUrl || item.image
+                })),
+                totalAmount: getCartTotal(),
+                paymentStatus: 'Paid', // Simulated
+                paymentMethod: 'Razorpay'
+            };
+
+            await FirebaseService.createOrder(orderData);
+            clearCart();
             navigate('/order-success');
-        }, 1500);
+        } catch (error) {
+            console.error("Error creating order", error);
+            alert("Failed to place order: " + error.message);
+        } finally {
+            setLoading(false);
+        }
     };
+
+    if (cart.length === 0) {
+        return (
+            <div className="container" style={{ padding: '4rem 0', textAlign: 'center' }}>
+                <h2>Your cart is empty</h2>
+                <Button variant="primary" onClick={() => navigate('/shop')} style={{ marginTop: '1rem' }}>
+                    Continue Shopping
+                </Button>
+            </div>
+        );
+    }
 
     return (
         <div className="container" style={{ padding: '3rem 0' }}>
@@ -161,22 +183,19 @@ const Checkout = () => {
                 }}>
                     <h2 style={{ fontSize: '1.25rem', fontWeight: '600', marginBottom: '1.5rem' }}>Order Summary</h2>
 
-                    {/* Dummy Order Items */}
                     <div style={{ marginBottom: '1.5rem', borderBottom: '1px solid var(--color-border)', paddingBottom: '1.5rem' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                            <span>Bamboo Toothbrush Set (x2)</span>
-                            <span>$25.98</span>
-                        </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <span>Reusable Cotton Pads (x1)</span>
-                            <span>$18.50</span>
-                        </div>
+                        {cart.map(item => (
+                            <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                                <span>{item.name} (x{item.quantity})</span>
+                                <span>₹{(item.price * item.quantity).toFixed(2)}</span>
+                            </div>
+                        ))}
                     </div>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1.5rem' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--color-text-light)' }}>
                             <span>Subtotal</span>
-                            <span>$44.48</span>
+                            <span>₹{getCartTotal().toFixed(2)}</span>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--color-text-light)' }}>
                             <span>Shipping</span>
@@ -192,7 +211,7 @@ const Checkout = () => {
                             paddingTop: '1rem'
                         }}>
                             <span>Total</span>
-                            <span>$44.48</span>
+                            <span>₹{getCartTotal().toFixed(2)}</span>
                         </div>
                     </div>
 
@@ -200,8 +219,9 @@ const Checkout = () => {
                         variant="primary"
                         style={{ width: '100%', marginBottom: '1rem' }}
                         onClick={() => document.getElementById('checkout-form').requestSubmit()}
+                        disabled={loading}
                     >
-                        Pay Now <CreditCard size={20} style={{ marginLeft: '0.5rem' }} />
+                        {loading ? 'Processing...' : 'Pay Now'} <CreditCard size={20} style={{ marginLeft: '0.5rem' }} />
                     </Button>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.75rem', color: 'var(--color-text-light)' }}>
@@ -209,7 +229,7 @@ const Checkout = () => {
                             <ShieldCheck size={16} color="var(--color-success)" /> Secure Payment with Razorpay
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <Truck size={16} color="var(--color-primary)" /> Free Shipping on orders over $50
+                            <Truck size={16} color="var(--color-primary)" /> Free Shipping on orders over ₹5000
                         </div>
                     </div>
                 </div>

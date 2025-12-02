@@ -20,7 +20,7 @@ const Wishlist = () => {
                         </div>
                         <div className="wishlist-content">
                             <h3 className="wishlist-name">{item.name}</h3>
-                            <div className="wishlist-price">${item.price.toFixed(2)}</div>
+                            <div className="wishlist-price">₹{item.price.toFixed(2)}</div>
                             <div className="wishlist-actions">
                                 <Button variant="primary" size="small" style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.25rem' }}>
                                     <ShoppingCart size={16} /> Add

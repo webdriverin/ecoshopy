@@ -1,16 +1,32 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import FirebaseService from '../../services/FirebaseService';
 import './Categories.css';
 
 const Categories = () => {
-    const categories = [
-        { name: 'Home Products', image: 'https://images.unsplash.com/photo-1583847268964-b28dc8f98091?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80', link: '/shop?category=Home Products' },
-        { name: 'Fashion', image: 'https://images.unsplash.com/photo-1532453288672-3a27e9be9efd?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80', link: '/shop?category=Fashion' },
-        { name: 'Electronics', image: 'https://images.unsplash.com/photo-1550009158-9ebf69173e03?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80', link: '/shop?category=Electronics' },
-        { name: 'Accessories', image: 'https://images.unsplash.com/photo-1576566588028-4147f3842f27?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80', link: '/shop?category=Accessories' },
-        { name: 'Personal Care', image: 'https://images.unsplash.com/photo-1607613009820-a29f7bb6dcaf?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80', link: '/shop?category=Personal Care' },
-        { name: 'Beauty', image: 'https://images.unsplash.com/photo-1556228720-1957be83f304?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80', link: '/shop?category=Beauty' },
-    ];
+    const [categories, setCategories] = useState([]);
+
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const data = await FirebaseService.getCategories();
+                // If no categories in DB, fallback to some defaults or empty
+                if (data.length > 0) {
+                    setCategories(data);
+                } else {
+                    // Fallback for demo if DB is empty
+                    setCategories([
+                        { name: 'Home Products', image: 'https://images.unsplash.com/photo-1583847268964-b28dc8f98091?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80', link: '/shop?category=Home Products' },
+                        { name: 'Fashion', image: 'https://images.unsplash.com/photo-1532453288672-3a27e9be9efd?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80', link: '/shop?category=Fashion' },
+                        { name: 'Electronics', image: 'https://images.unsplash.com/photo-1550009158-9ebf69173e03?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80', link: '/shop?category=Electronics' },
+                    ]);
+                }
+            } catch (error) {
+                console.error("Error fetching categories", error);
+            }
+        };
+        fetchCategories();
+    }, []);
 
     return (
         <section className="categories-section">

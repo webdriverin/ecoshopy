@@ -1,31 +1,51 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Button from '../../components/UI/Button';
 import { Plus, Edit, Trash2, Search } from 'lucide-react';
 import FirebaseService from '../../services/FirebaseService';
 
 const ProductManager = () => {
-    // Dummy data
-    const [products] = useState([
-        { id: '1', name: 'Bamboo Toothbrush Set', price: 12.99, category: 'Personal Care', stock: 50, status: 'Active' },
-        { id: '2', name: 'Reusable Cotton Pads', price: 18.50, category: 'Beauty', stock: 30, status: 'Active' },
-        { id: '3', name: 'Glass Water Bottle', price: 24.00, category: 'Accessories', stock: 0, status: 'Out of Stock' },
-        { id: '4', name: 'Eco-Friendly Tote Bag', price: 15.00, category: 'Fashion', stock: 100, status: 'Draft' },
-    ]);
+    const navigate = useNavigate();
+    const [products, setProducts] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [searchTerm, setSearchTerm] = useState('');
 
     useEffect(() => {
-        // Uncomment when Firebase config is real
-        // const fetchProducts = async () => {
-        //   const data = await FirebaseService.getProducts();
-        //   setProducts(data);
-        // };
-        // fetchProducts();
+        fetchProducts();
     }, []);
+
+    const fetchProducts = async () => {
+        try {
+            const data = await FirebaseService.getProducts();
+            setProducts(data);
+        } catch (error) {
+            console.error("Error fetching products", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleDelete = async (id) => {
+        if (window.confirm('Are you sure you want to delete this product?')) {
+            try {
+                await FirebaseService.deleteProduct(id);
+                setProducts(products.filter(p => p.id !== id));
+            } catch (error) {
+                console.error("Error deleting product", error);
+                alert("Failed to delete product");
+            }
+        }
+    };
+
+    const filteredProducts = products.filter(product =>
+        product.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
     return (
         <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
                 <h1>Products</h1>
-                <Button variant="primary">
+                <Button variant="primary" onClick={() => navigate('/admin/products/add')}>
                     <Plus size={20} style={{ marginRight: '0.5rem' }} /> Add Product
                 </Button>
             </div>
@@ -36,47 +56,61 @@ const ProductManager = () => {
                     <input
                         type="text"
                         placeholder="Search products..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
                         style={{ border: 'none', outline: 'none', width: '100%', fontSize: '1rem' }}
                     />
                 </div>
 
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                    <thead style={{ backgroundColor: 'var(--color-bg-body)' }}>
-                        <tr>
-                            <th style={{ padding: '1rem', textAlign: 'left', fontWeight: '600', color: 'var(--color-text-light)' }}>Product Name</th>
-                            <th style={{ padding: '1rem', textAlign: 'left', fontWeight: '600', color: 'var(--color-text-light)' }}>Category</th>
-                            <th style={{ padding: '1rem', textAlign: 'left', fontWeight: '600', color: 'var(--color-text-light)' }}>Price</th>
-                            <th style={{ padding: '1rem', textAlign: 'left', fontWeight: '600', color: 'var(--color-text-light)' }}>Stock</th>
-                            <th style={{ padding: '1rem', textAlign: 'left', fontWeight: '600', color: 'var(--color-text-light)' }}>Status</th>
-                            <th style={{ padding: '1rem', textAlign: 'right', fontWeight: '600', color: 'var(--color-text-light)' }}>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {products.map(product => (
-                            <tr key={product.id} style={{ borderBottom: '1px solid var(--color-border)' }}>
-                                <td style={{ padding: '1rem' }}>{product.name}</td>
-                                <td style={{ padding: '1rem' }}>{product.category}</td>
-                                <td style={{ padding: '1rem' }}>${product.price.toFixed(2)}</td>
-                                <td style={{ padding: '1rem' }}>{product.stock}</td>
-                                <td style={{ padding: '1rem' }}>
-                                    <span style={{
-                                        padding: '0.25rem 0.75rem',
-                                        borderRadius: 'var(--radius-full)',
-                                        fontSize: '0.75rem',
-                                        backgroundColor: product.status === 'Active' ? '#D1FAE5' : product.status === 'Out of Stock' ? '#FEE2E2' : '#F3F4F6',
-                                        color: product.status === 'Active' ? 'var(--color-success)' : product.status === 'Out of Stock' ? 'var(--color-error)' : 'var(--color-text-light)'
-                                    }}>
-                                        {product.status}
-                                    </span>
-                                </td>
-                                <td style={{ padding: '1rem', textAlign: 'right' }}>
-                                    <button style={{ marginRight: '0.5rem', color: 'var(--color-text-light)' }}><Edit size={18} /></button>
-                                    <button style={{ color: 'var(--color-error)' }}><Trash2 size={18} /></button>
-                                </td>
+                {loading ? (
+                    <div style={{ padding: '2rem', textAlign: 'center' }}>Loading products...</div>
+                ) : (
+                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                        <thead style={{ backgroundColor: 'var(--color-bg-body)' }}>
+                            <tr>
+                                <th style={{ padding: '1rem', textAlign: 'left', fontWeight: '600', color: 'var(--color-text-light)' }}>Product Name</th>
+                                <th style={{ padding: '1rem', textAlign: 'left', fontWeight: '600', color: 'var(--color-text-light)' }}>Category</th>
+                                <th style={{ padding: '1rem', textAlign: 'left', fontWeight: '600', color: 'var(--color-text-light)' }}>Type</th>
+                                <th style={{ padding: '1rem', textAlign: 'left', fontWeight: '600', color: 'var(--color-text-light)' }}>Price</th>
+                                <th style={{ padding: '1rem', textAlign: 'left', fontWeight: '600', color: 'var(--color-text-light)' }}>Stock</th>
+                                <th style={{ padding: '1rem', textAlign: 'left', fontWeight: '600', color: 'var(--color-text-light)' }}>Status</th>
+                                <th style={{ padding: '1rem', textAlign: 'right', fontWeight: '600', color: 'var(--color-text-light)' }}>Actions</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            {filteredProducts.length === 0 ? (
+                                <tr>
+                                    <td colSpan="7" style={{ padding: '2rem', textAlign: 'center', color: 'var(--color-text-light)' }}>No products found.</td>
+                                </tr>
+                            ) : (
+                                filteredProducts.map(product => (
+                                    <tr key={product.id} style={{ borderBottom: '1px solid var(--color-border)' }}>
+                                        <td style={{ padding: '1rem' }}>{product.name}</td>
+                                        <td style={{ padding: '1rem' }}>{product.category}</td>
+                                        <td style={{ padding: '1rem', textTransform: 'capitalize' }}>{product.type || 'Standard'}</td>
+                                        <td style={{ padding: '1rem' }}>₹{product.price}</td>
+                                        <td style={{ padding: '1rem' }}>{product.stock}</td>
+                                        <td style={{ padding: '1rem' }}>
+                                            <span style={{
+                                                padding: '0.25rem 0.75rem',
+                                                borderRadius: 'var(--radius-full)',
+                                                fontSize: '0.75rem',
+                                                backgroundColor: product.stock > 0 ? '#D1FAE5' : '#FEE2E2',
+                                                color: product.stock > 0 ? 'var(--color-success)' : 'var(--color-error)'
+                                            }}>
+                                                {product.stock > 0 ? 'Active' : 'Out of Stock'}
+                                            </span>
+                                        </td>
+                                        <td style={{ padding: '1rem', textAlign: 'right' }}>
+                                            <button onClick={() => navigate(`/admin/products/edit/${product.id}`)} style={{ marginRight: '0.5rem', color: 'var(--color-text-light)', cursor: 'pointer' }}><Edit size={18} /></button>
+                                            <button onClick={() => handleDelete(product.id)} style={{ color: 'var(--color-error)', cursor: 'pointer' }}><Trash2 size={18} /></button>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                )}
             </div>
         </div>
     );

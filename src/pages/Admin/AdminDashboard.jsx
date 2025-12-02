@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import AdminSidebar from './AdminSidebar';
 import ProductManager from './ProductManager';
@@ -10,9 +10,30 @@ import InventoryManager from './InventoryManager';
 import POSSystem from './POSSystem';
 import ReportsManager from './ReportsManager';
 import CMSManager from './CMSManager';
+import UsersManager from './UsersManager';
 import ModulePlaceholder from './ModulePlaceholder';
 
+import { auth } from '../../firebase';
+import { onAuthStateChanged } from 'firebase/auth';
+import { useNavigate } from 'react-router-dom';
+import FirebaseService from '../../services/FirebaseService';
+
 const AdminDashboard = () => {
+    const navigate = useNavigate();
+    const [isAuthChecking, setIsAuthChecking] = React.useState(true);
+
+    React.useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                navigate('/admin/login');
+            }
+            setIsAuthChecking(false);
+        });
+        return () => unsubscribe();
+    }, [navigate]);
+
+    if (isAuthChecking) return <div style={{ padding: '2rem' }}>Checking authentication...</div>;
+
     return (
         <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: 'var(--color-bg-body)' }}>
             <AdminSidebar />
@@ -29,9 +50,8 @@ const AdminDashboard = () => {
                     {/* Products */}
                     <Route path="products" element={<ProductManager />} />
                     <Route path="products/add" element={<ProductAddForm type="Standard" />} />
-                    <Route path="products/add-combo" element={<ProductAddForm type="Combo" />} />
                     <Route path="products/add-multiple" element={<ProductAddForm type="Multiple Count" />} />
-                    <Route path="products/add-digital" element={<ProductAddForm type="Digital" />} />
+                    <Route path="products/edit/:id" element={<ProductAddForm />} />
                     <Route path="products/*" element={<ProductOffersManager />} />
 
                     {/* Inventory */}
@@ -47,7 +67,7 @@ const AdminDashboard = () => {
                     <Route path="cms/*" element={<CMSManager />} />
 
                     {/* Users */}
-                    <Route path="users" element={<ModulePlaceholder />} />
+                    <Route path="users" element={<UsersManager />} />
 
                     <Route path="*" element={<DashboardOverview />} />
                 </Routes>
@@ -56,13 +76,43 @@ const AdminDashboard = () => {
     );
 };
 
+
 const DashboardOverview = () => {
-    const stats = [
-        { label: 'Total Sales', value: '$12,450', change: '+15%' },
-        { label: 'Total Orders', value: '156', change: '+8%' },
-        { label: 'Products', value: '45', change: '+2' },
-        { label: 'Customers', value: '1,203', change: '+12%' }
-    ];
+    const [stats, setStats] = useState([
+        { label: 'Total Sales', value: '₹0', change: '0%' },
+        { label: 'Total Orders', value: '0', change: '0%' },
+        { label: 'Products', value: '0', change: '0' },
+        { label: 'Customers', value: '0', change: '0%' }
+    ]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchStats = async () => {
+            try {
+                const [orders, products, customers] = await Promise.all([
+                    FirebaseService.getOrders(),
+                    FirebaseService.getProducts(),
+                    FirebaseService.getCustomers()
+                ]);
+
+                const totalSales = orders.reduce((sum, order) => sum + (parseFloat(order.total) || 0), 0);
+
+                setStats([
+                    { label: 'Total Sales', value: `₹${totalSales.toFixed(2)}`, change: '+0%' }, // Change logic needs historical data
+                    { label: 'Total Orders', value: orders.length.toString(), change: '+0%' },
+                    { label: 'Products', value: products.length.toString(), change: '+0' },
+                    { label: 'Customers', value: customers.length.toString(), change: '+0%' }
+                ]);
+            } catch (error) {
+                console.error("Error fetching dashboard stats", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchStats();
+    }, []);
+
+    if (loading) return <div style={{ padding: '2rem' }}>Loading dashboard stats...</div>;
 
     return (
         <div>

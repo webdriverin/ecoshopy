@@ -45,7 +45,7 @@ const OrderSuccess = () => {
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <span style={{ color: 'var(--color-text-light)' }}>Total:</span>
-                    <span style={{ fontWeight: '600', color: 'var(--color-primary)' }}>$44.48</span>
+                    <span style={{ fontWeight: '600', color: 'var(--color-primary)' }}>₹4448.00</span>
                 </div>
             </div>
 

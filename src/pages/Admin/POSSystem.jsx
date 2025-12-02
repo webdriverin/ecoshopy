@@ -75,7 +75,7 @@ const POSSystem = () => {
                         >
                             <div style={{ height: '100px', backgroundColor: '#F3F4F6', borderRadius: 'var(--radius-md)', marginBottom: '1rem' }}></div>
                             <h3 style={{ fontSize: '1rem', marginBottom: '0.5rem' }}>{product.name}</h3>
-                            <div style={{ fontWeight: 'bold', color: 'var(--color-primary)' }}>${product.price.toFixed(2)}</div>
+                            <div style={{ fontWeight: 'bold', color: 'var(--color-primary)' }}>₹{product.price.toFixed(2)}</div>
                         </div>
                     ))}
                 </div>
@@ -97,7 +97,7 @@ const POSSystem = () => {
                                 <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                     <div>
                                         <div style={{ fontWeight: '500' }}>{item.name}</div>
-                                        <div style={{ fontSize: '0.875rem', color: 'var(--color-text-light)' }}>${item.price.toFixed(2)} x {item.quantity}</div>
+                                        <div style={{ fontSize: '0.875rem', color: 'var(--color-text-light)' }}>₹{item.price.toFixed(2)} x {item.quantity}</div>
                                     </div>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                         <button onClick={() => updateQuantity(item.id, -1)} style={{ padding: '0.25rem', borderRadius: '50%', backgroundColor: '#F3F4F6' }}><Minus size={16} /></button>
@@ -114,7 +114,7 @@ const POSSystem = () => {
                 <div style={{ padding: '1.5rem', backgroundColor: '#F9FAFB', borderTop: '1px solid var(--color-border)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', fontSize: '1.25rem', fontWeight: 'bold' }}>
                         <span>Total</span>
-                        <span>${total.toFixed(2)}</span>
+                        <span>₹{total.toFixed(2)}</span>
                     </div>
                     <Button variant="primary" style={{ width: '100%' }} disabled={cart.length === 0}>
                         Complete Order

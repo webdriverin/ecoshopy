@@ -7,7 +7,8 @@ import {
     sendEmailVerification,
     updateProfile
 } from "firebase/auth";
-import { auth } from "../firebase";
+import { auth, db } from "../firebase";
+import { doc, setDoc, getDoc } from "firebase/firestore";
 
 const googleProvider = new GoogleAuthProvider();
 
@@ -21,8 +22,20 @@ export const signInWithGoogle = async () => {
             email: user.email,
             photoURL: user.photoURL,
             uid: user.uid,
-            emailVerified: user.emailVerified
+            emailVerified: user.emailVerified,
+            role: 'customer', // Default role
+            lastLogin: new Date().toISOString()
         };
+
+        // Check if user exists, if not create, if yes update lastLogin
+        const userRef = doc(db, "users", user.uid);
+        const userSnap = await getDoc(userRef);
+
+        if (!userSnap.exists()) {
+            await setDoc(userRef, { ...userData, createdAt: new Date().toISOString() });
+        } else {
+            await setDoc(userRef, { lastLogin: new Date().toISOString() }, { merge: true });
+        }
 
         localStorage.setItem('user', JSON.stringify(userData));
         return userData;
@@ -40,6 +53,17 @@ export const registerWithEmailAndPassword = async (name, email, password) => {
         // Update profile with name
         await updateProfile(user, { displayName: name });
 
+        // Save user to Firestore
+        const userData = {
+            name: name,
+            email: user.email,
+            uid: user.uid,
+            emailVerified: false,
+            role: 'customer',
+            createdAt: new Date().toISOString()
+        };
+        await setDoc(doc(db, "users", user.uid), userData);
+
         // Send verification email with redirect to login
         const actionCodeSettings = {
             url: window.location.origin + '/login',
@@ -47,15 +71,6 @@ export const registerWithEmailAndPassword = async (name, email, password) => {
         };
         await sendEmailVerification(user, actionCodeSettings);
 
-        const userData = {
-            name: name,
-            email: user.email,
-            uid: user.uid,
-            emailVerified: false
-        };
-
-        // Don't store in localStorage yet if we want to force verification first
-        // But for now, let's store it so they can see the "Verify Email" screen if we build one
         return userData;
     } catch (error) {
         console.error("Error registering", error);
@@ -100,10 +115,19 @@ export const logout = async () => {
 
 export const resendVerificationEmail = async () => {
     if (auth.currentUser && !auth.currentUser.emailVerified) {
-        const actionCodeSettings = {
-            url: window.location.origin + '/login',
-            handleCodeInApp: true
-        };
-        await sendEmailVerification(auth.currentUser, actionCodeSettings);
+        try {
+            console.log("Attempting to resend verification email to:", auth.currentUser.email);
+            const actionCodeSettings = {
+                url: window.location.origin + '/login',
+                handleCodeInApp: true
+            };
+            await sendEmailVerification(auth.currentUser, actionCodeSettings);
+            console.log("Verification email sent successfully.");
+        } catch (error) {
+            console.error("Error in resendVerificationEmail:", error);
+            throw error;
+        }
+    } else {
+        console.log("User not signed in or already verified.");
     }
 };

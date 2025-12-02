@@ -1,0 +1,26 @@
+.dynamic-page {
+    padding: 4rem 0;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.page-title {
+    font-size: 2.5rem;
+    margin-bottom: 2rem;
+    color: var(--color-text-dark);
+}
+
+.page-content {
+    line-height: 1.8;
+    color: var(--color-text-light);
+}
+
+.page-content h2 {
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    color: var(--color-text-dark);
+}
+
+.page-content p {
+    margin-bottom: 1rem;
+}

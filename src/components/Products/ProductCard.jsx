@@ -31,21 +31,13 @@ const ProductCard = ({ product }) => {
                             <Star key={i} size={16} fill={i < product.rating ? "currentColor" : "none"} stroke="currentColor" />
                         ))}
                     </div>
-                    <span className="review-count">
-                        ({product.reviews})
-                    </span>
                 </div>
-
                 <div className="product-footer">
-                    <span className="product-price">
-                        ${product.price.toFixed(2)}
-                    </span>
-                    <Button
-                        variant="secondary"
-                        className="add-to-cart-btn"
-                        aria-label="Add to cart"
-                    >
-                        <ShoppingCart size={20} />
+                    <div className="product-price">
+                        ₹{product.price.toFixed(2)}
+                    </div>
+                    <Button variant="primary" size="small" className="add-to-cart-btn">
+                        <ShoppingCart size={18} />
                     </Button>
                 </div>
             </div>

@@ -49,6 +49,7 @@ const Signup = () => {
             if (error.code === 'auth/email-already-in-use') {
                 setError("Email already in use. Please Login instead.");
             } else {
+                // Show more detailed error
                 setError("Signup failed: " + error.message);
             }
         }

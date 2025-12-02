@@ -8,20 +8,20 @@ const OrderHistory = () => {
         {
             id: 'ORD-12345',
             date: 'Oct 15, 2023',
-            total: 45.50,
+            total: 4550.00,
             status: 'Delivered',
             items: [
-                { name: 'Bamboo Toothbrush', price: 5.50, image: 'https://images.unsplash.com/photo-1607613009820-a29f7bb6dcaf?auto=format&fit=crop&w=100&q=80', quantity: 2 },
-                { name: 'Reusable Cotton Pads', price: 12.00, image: 'https://images.unsplash.com/photo-1556228720-1957be83f315?auto=format&fit=crop&w=100&q=80', quantity: 1 }
+                { name: 'Bamboo Toothbrush', price: 550.00, image: 'https://images.unsplash.com/photo-1607613009820-a29f7bb6dcaf?auto=format&fit=crop&w=100&q=80', quantity: 2 },
+                { name: 'Reusable Cotton Pads', price: 1200.00, image: 'https://images.unsplash.com/photo-1556228720-1957be83f315?auto=format&fit=crop&w=100&q=80', quantity: 1 }
             ]
         },
         {
             id: 'ORD-67890',
             date: 'Nov 02, 2023',
-            total: 24.00,
+            total: 2400.00,
             status: 'Processing',
             items: [
-                { name: 'Glass Water Bottle', price: 24.00, image: 'https://images.unsplash.com/photo-1602143407151-01114192003b?auto=format&fit=crop&w=100&q=80', quantity: 1 }
+                { name: 'Glass Water Bottle', price: 2400.00, image: 'https://images.unsplash.com/photo-1602143407151-01114192003b?auto=format&fit=crop&w=100&q=80', quantity: 1 }
             ]
         }
     ];
@@ -42,7 +42,7 @@ const OrderHistory = () => {
                                 <span className="order-id">Order #{order.id}</span>
                                 <span className="order-date">Placed on {order.date}</span>
                             </div>
-                            <div className="order-total-badge">${order.total.toFixed(2)}</div>
+                            <div className="order-total-badge">₹{order.total.toFixed(2)}</div>
                         </div>
 
                         {/* Visual Status Stepper */}
@@ -75,7 +75,7 @@ const OrderHistory = () => {
                                         <div className="item-details">
                                             <h4>{item.name}</h4>
                                             <p className="item-qty">Qty: {item.quantity}</p>
-                                            <p className="item-price">${item.price.toFixed(2)}</p>
+                                            <p className="item-price">₹{item.price.toFixed(2)}</p>
                                         </div>
                                         <button className="btn-buy-again">Buy Again</button>
                                     </div>

@@ -13,28 +13,41 @@ import Signup from './pages/Signup';
 import Profile from './pages/Profile';
 import AdminDashboard from './pages/Admin/AdminDashboard';
 import AdminLogin from './pages/Admin/AdminLogin';
+import DynamicPage from './pages/DynamicPage';
+import FAQ from './pages/FAQ';
+import CollectionProducts from './pages/CollectionProducts';
+
+import { CartProvider } from './context/CartContext';
+
+import { Toaster } from 'react-hot-toast';
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<Layout />}>
-          <Route index element={<Home />} />
-          <Route path="shop" element={<Shop />} />
-          <Route path="product/:id" element={<ProductDetails />} />
-          <Route path="cart" element={<Cart />} />
-          <Route path="checkout" element={<Checkout />} />
-          <Route path="order-success" element={<OrderSuccess />} />
-          <Route path="about" element={<About />} />
-          <Route path="contact" element={<Contact />} />
-          <Route path="login" element={<Login />} />
-          <Route path="signup" element={<Signup />} />
-          <Route path="profile" element={<Profile />} />
-        </Route>
-        <Route path="/admin/login" element={<AdminLogin />} />
-        <Route path="/admin/*" element={<AdminDashboard />} />
-      </Routes>
-    </Router>
+    <CartProvider>
+      <Toaster position="top-center" reverseOrder={false} />
+      <Router>
+        <Routes>
+          <Route path="/" element={<Layout />}>
+            <Route index element={<Home />} />
+            <Route path="shop" element={<Shop />} />
+            <Route path="collections/:id" element={<CollectionProducts />} />
+            <Route path="product/:id" element={<ProductDetails />} />
+            <Route path="cart" element={<Cart />} />
+            <Route path="checkout" element={<Checkout />} />
+            <Route path="order-success" element={<OrderSuccess />} />
+            <Route path="about" element={<About />} />
+            <Route path="contact" element={<Contact />} />
+            <Route path="login" element={<Login />} />
+            <Route path="signup" element={<Signup />} />
+            <Route path="profile" element={<Profile />} />
+            <Route path="pages/:slug" element={<DynamicPage />} />
+            <Route path="faq" element={<FAQ />} />
+          </Route>
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/admin/*" element={<AdminDashboard />} />
+        </Routes>
+      </Router>
+    </CartProvider>
   );
 }
 

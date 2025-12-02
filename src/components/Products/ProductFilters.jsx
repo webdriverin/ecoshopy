@@ -1,14 +1,30 @@
 import React from 'react';
 import Button from '../UI/Button';
 
+import FirebaseService from '../../services/FirebaseService';
+
 const ProductFilters = ({ filters, onFilterChange, onClearFilters }) => {
-    const categories = ['All', 'Home Products', 'Fashion', 'Electronics', 'Accessories'];
+    const [categories, setCategories] = React.useState(['All']);
+
+    React.useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const data = await FirebaseService.getCategories();
+                const categoryNames = ['All', ...data.map(c => c.name)];
+                setCategories(categoryNames);
+            } catch (error) {
+                console.error("Error fetching categories", error);
+            }
+        };
+        fetchCategories();
+    }, []);
+
     const priceRanges = [
         { label: 'All', value: 'all' },
-        { label: 'Under $25', value: '0-25' },
-        { label: '$25 - $50', value: '25-50' },
-        { label: '$50 - $100', value: '50-100' },
-        { label: 'Over $100', value: '100-plus' }
+        { label: 'Under ₹2000', value: '0-25' },
+        { label: '₹2000 - ₹5000', value: '25-50' },
+        { label: '₹5000 - ₹10000', value: '50-100' },
+        { label: 'Over ₹10000', value: '100-plus' }
     ];
 
     return (

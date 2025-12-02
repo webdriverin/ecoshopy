@@ -3,24 +3,14 @@ import { useSearchParams } from 'react-router-dom';
 import ProductGrid from '../components/Products/ProductGrid';
 import ProductFilters from '../components/Products/ProductFilters';
 import { Search, Filter, X } from 'lucide-react';
+import FirebaseService from '../services/FirebaseService';
 import './Shop.css';
 
-const allProducts = [
-    { id: '1', name: 'Bamboo Toothbrush Set', price: 12.99, category: 'Personal Care', rating: 4.5, reviews: 128, image: 'https://images.unsplash.com/photo-1607613009820-a29f7bb6dcaf?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' },
-    { id: '2', name: 'Reusable Cotton Pads', price: 18.50, category: 'Beauty', rating: 4.8, reviews: 85, image: 'https://images.unsplash.com/photo-1556228720-1957be83f304?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' },
-    { id: '3', name: 'Glass Water Bottle', price: 24.00, category: 'Accessories', rating: 4.7, reviews: 210, image: 'https://images.unsplash.com/photo-1602143407151-01114192003f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' },
-    { id: '4', name: 'Eco-Friendly Tote Bag', price: 15.00, category: 'Fashion', rating: 4.6, reviews: 95, image: 'https://images.unsplash.com/photo-1597484662317-c93100d013ce?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' },
-    { id: '5', name: 'Organic Cotton T-Shirt', price: 35.00, category: 'Fashion', rating: 4.3, reviews: 45, image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' },
-    { id: '6', name: 'Solar Power Bank', price: 45.99, category: 'Electronics', rating: 4.9, reviews: 320, image: 'https://images.unsplash.com/photo-1620778184568-d0554446542f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' },
-    { id: '7', name: 'Wooden Desk Organizer', price: 29.99, category: 'Home Products', rating: 4.4, reviews: 67, image: 'https://images.unsplash.com/photo-1502005229766-939760a7cb0d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' },
-    { id: '8', name: 'Recycled Paper Notebook', price: 8.50, category: 'Home Products', rating: 4.2, reviews: 112, image: 'https://images.unsplash.com/photo-1544816155-12df9643f363?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' },
-];
-
 const Shop = () => {
-    // Dummy data - in real app, fetch from Firestore
     const [searchParams] = useSearchParams();
     const initialSearch = searchParams.get('search') || '';
 
+    const [allProducts, setAllProducts] = useState([]);
     const [filters, setFilters] = useState({
         category: 'All',
         priceRange: 'all'
@@ -28,11 +18,33 @@ const Shop = () => {
     const [sortBy, setSortBy] = useState('popular');
     const [searchQuery, setSearchQuery] = useState(initialSearch);
     const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchProducts = async () => {
+            try {
+                const data = await FirebaseService.getProducts();
+                console.log("Fetched products from DB:", data);
+                setAllProducts(data);
+            } catch (error) {
+                console.error("Error fetching products", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchProducts();
+    }, []);
 
     useEffect(() => {
         const search = searchParams.get('search');
+        const category = searchParams.get('category');
+
         if (search !== null) {
             setSearchQuery(search);
+        }
+
+        if (category !== null) {
+            setFilters(prev => ({ ...prev, category: category }));
         }
     }, [searchParams]);
 
@@ -41,7 +53,12 @@ const Shop = () => {
 
         // Filter by Category
         if (filters.category !== 'All') {
-            result = result.filter(p => p.category === filters.category);
+            console.log("Filtering by category:", filters.category);
+            result = result.filter(p => {
+                const match = p.category?.toLowerCase().trim() === filters.category.toLowerCase().trim();
+                console.log(`Product: ${p.name}, Category: '${p.category}', Match: ${match}`);
+                return match;
+            });
         }
 
         // Filter by Price
@@ -70,7 +87,7 @@ const Shop = () => {
         }
 
         return result;
-    }, [filters, sortBy, searchQuery]);
+    }, [allProducts, filters, sortBy, searchQuery]);
 
     const handleFilterChange = (key, value) => {
         setFilters(prev => ({ ...prev, [key]: value }));
@@ -82,12 +99,56 @@ const Shop = () => {
         setSortBy('popular');
     };
 
+    const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
+    const [requestProduct, setRequestProduct] = useState('');
+    const [requestEmail, setRequestEmail] = useState('');
+    const [requestStatus, setRequestStatus] = useState('idle');
+
+    const handleRequestSubmit = async (e) => {
+        e.preventDefault();
+        if (!requestProduct) return;
+
+        setRequestStatus('loading');
+        try {
+            await FirebaseService.addProductRequest({
+                productName: requestProduct,
+                email: requestEmail || 'Anonymous'
+            });
+            setRequestStatus('success');
+            setTimeout(() => {
+                setIsRequestModalOpen(false);
+                setRequestStatus('idle');
+                setRequestProduct('');
+                setRequestEmail('');
+            }, 2000);
+        } catch (error) {
+            console.error("Request failed", error);
+            setRequestStatus('error');
+        }
+    };
+
     return (
         <div className="container" style={{ padding: '2rem 0' }}>
-            <div className="shop-header" style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' }}>
+            <div className="shop-header" style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
                 <h1 style={{ margin: 0 }}>Shop All Products</h1>
 
                 <div className="shop-controls">
+                    <button
+                        onClick={() => setIsRequestModalOpen(true)}
+                        style={{
+                            padding: '0.5rem 1rem',
+                            backgroundColor: 'var(--color-accent)',
+                            color: 'var(--color-primary)',
+                            border: '1px solid var(--color-primary)',
+                            borderRadius: 'var(--radius-md)',
+                            fontWeight: '600',
+                            cursor: 'pointer',
+                            marginRight: '1rem'
+                        }}
+                    >
+                        Request a Product
+                    </button>
+
                     <div className="shop-search-container">
                         <Search size={20} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-light)' }} />
                         <input
@@ -144,6 +205,86 @@ const Shop = () => {
                     <ProductGrid products={products} />
                 </div>
             </div>
+
+            {/* Request Modal */}
+            {isRequestModalOpen && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: 'rgba(0,0,0,0.5)',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    zIndex: 1000
+                }}>
+                    <div style={{
+                        backgroundColor: 'white',
+                        padding: '2rem',
+                        borderRadius: 'var(--radius-lg)',
+                        width: '90%',
+                        maxWidth: '500px',
+                        position: 'relative'
+                    }}>
+                        <button
+                            onClick={() => setIsRequestModalOpen(false)}
+                            style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'none', border: 'none', cursor: 'pointer' }}
+                        >
+                            <X size={24} />
+                        </button>
+
+                        <h2 style={{ marginBottom: '1.5rem' }}>Request a Product</h2>
+
+                        {requestStatus === 'success' ? (
+                            <div style={{ textAlign: 'center', color: 'var(--color-success)', padding: '2rem 0' }}>
+                                <h3 style={{ marginBottom: '0.5rem' }}>Request Sent!</h3>
+                                <p>We'll look into adding this product soon.</p>
+                            </div>
+                        ) : (
+                            <form onSubmit={handleRequestSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Product Name / Description</label>
+                                    <textarea
+                                        required
+                                        value={requestProduct}
+                                        onChange={(e) => setRequestProduct(e.target.value)}
+                                        placeholder="What product are you looking for?"
+                                        style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', minHeight: '100px' }}
+                                    />
+                                </div>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Your Email (Optional)</label>
+                                    <input
+                                        type="email"
+                                        value={requestEmail}
+                                        onChange={(e) => setRequestEmail(e.target.value)}
+                                        placeholder="To get notified when it's available"
+                                        style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}
+                                    />
+                                </div>
+                                <button
+                                    type="submit"
+                                    disabled={requestStatus === 'loading'}
+                                    style={{
+                                        padding: '0.75rem',
+                                        backgroundColor: 'var(--color-primary)',
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: 'var(--radius-md)',
+                                        fontWeight: '600',
+                                        cursor: 'pointer',
+                                        opacity: requestStatus === 'loading' ? 0.7 : 1
+                                    }}
+                                >
+                                    {requestStatus === 'loading' ? 'Sending...' : 'Submit Request'}
+                                </button>
+                            </form>
+                        )}
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

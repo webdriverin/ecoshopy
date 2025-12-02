@@ -3,45 +3,34 @@ import { Minus, Plus, Trash2 } from 'lucide-react';
 
 const CartItem = ({ item, onUpdateQuantity, onRemove }) => {
     return (
-        <div style={{
-            display: 'flex',
-            gap: '1.5rem',
-            padding: '1.5rem',
-            backgroundColor: 'white',
-            borderRadius: 'var(--radius-md)',
-            boxShadow: 'var(--shadow-sm)',
-            alignItems: 'center'
-        }}>
-            <div style={{ width: '100px', height: '100px', flexShrink: 0, borderRadius: 'var(--radius-sm)', overflow: 'hidden' }}>
-                <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        <div className="cart-item">
+            <div className="cart-item-image">
+                <img
+                    src={item.images && item.images.length > 0 ? item.images[0] : (item.imageUrl || 'https://placehold.co/100x100?text=No+Image')}
+                    alt={item.name}
+                />
             </div>
 
-            <div style={{ flex: 1 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                    <h3 style={{ fontSize: '1.125rem', fontWeight: '600', color: 'var(--color-text-main)' }}>{item.name}</h3>
-                    <span style={{ fontWeight: '700', color: 'var(--color-primary)' }}>${(item.price * item.quantity).toFixed(2)}</span>
+            <div className="cart-item-content">
+                <div className="cart-item-header">
+                    <h3 className="cart-item-title">{item.name}</h3>
+                    <span className="cart-item-price">₹{(item.price * item.quantity).toFixed(2)}</span>
                 </div>
-                <p style={{ fontSize: '0.875rem', color: 'var(--color-text-light)', marginBottom: '1rem' }}>{item.category}</p>
+                <p className="cart-item-category">{item.category}</p>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        border: '1px solid var(--color-border)',
-                        borderRadius: 'var(--radius-full)',
-                        padding: '0.25rem'
-                    }}>
+                <div className="cart-item-actions">
+                    <div className="quantity-controls">
                         <button
                             onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}
-                            style={{ padding: '0.25rem 0.5rem', color: item.quantity === 1 ? 'var(--color-text-lighter)' : 'var(--color-text-main)' }}
+                            className="qty-btn"
                             disabled={item.quantity === 1}
                         >
                             <Minus size={14} />
                         </button>
-                        <span style={{ width: '30px', textAlign: 'center', fontSize: '0.875rem', fontWeight: '600' }}>{item.quantity}</span>
+                        <span className="qty-display">{item.quantity}</span>
                         <button
                             onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
-                            style={{ padding: '0.25rem 0.5rem' }}
+                            className="qty-btn"
                         >
                             <Plus size={14} />
                         </button>
@@ -49,7 +38,7 @@ const CartItem = ({ item, onUpdateQuantity, onRemove }) => {
 
                     <button
                         onClick={() => onRemove(item.id)}
-                        style={{ color: 'var(--color-error)', display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.875rem' }}
+                        className="remove-btn"
                     >
                         <Trash2 size={16} /> Remove
                     </button>

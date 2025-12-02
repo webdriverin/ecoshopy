@@ -1,26 +1,28 @@
 import React from 'react';
 
-const Testimonials = () => {
-    const testimonials = [
+const Testimonials = ({ data }) => {
+    const defaultTestimonials = [
         {
             id: 1,
             name: 'Sarah Johnson',
-            text: 'I love the quality of the products! The bamboo toothbrush is amazing and I feel great about reducing my plastic waste.',
+            review: 'I love the quality of the products! The bamboo toothbrush is amazing and I feel great about reducing my plastic waste.',
             role: 'Verified Buyer'
         },
         {
             id: 2,
             name: 'Michael Chen',
-            text: 'Fast shipping and eco-friendly packaging. Ecoshopy is now my go-to for sustainable home goods.',
+            review: 'Fast shipping and eco-friendly packaging. Ecoshopy is now my go-to for sustainable home goods.',
             role: 'Eco Enthusiast'
         },
         {
             id: 3,
             name: 'Emma Davis',
-            text: 'Great customer service and a beautiful website. Shopping here is a breeze.',
+            review: 'Great customer service and a beautiful website. Shopping here is a breeze.',
             role: 'Regular Customer'
         }
     ];
+
+    const displayTestimonials = data && data.length > 0 ? data : defaultTestimonials;
 
     return (
         <section style={{ padding: '4rem 0', backgroundColor: '#F0FDF4' }}>
@@ -31,7 +33,7 @@ const Testimonials = () => {
                     gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
                     gap: '2rem'
                 }}>
-                    {testimonials.map(item => (
+                    {displayTestimonials.map(item => (
                         <div key={item.id} style={{
                             backgroundColor: 'white',
                             padding: '2rem',
@@ -43,7 +45,7 @@ const Testimonials = () => {
                                 marginBottom: '1.5rem',
                                 color: 'var(--color-text-light)',
                                 lineHeight: '1.6'
-                            }}>"{item.text}"</p>
+                            }}>"{item.review || item.text}"</p>
                             <div style={{ display: 'flex', alignItems: 'center' }}>
                                 <div style={{
                                     width: '40px',

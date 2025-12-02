@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import DataGrid from './DataGrid';
+import FirebaseService from '../../services/FirebaseService';
 
 const InventoryManager = () => {
     return (
@@ -15,18 +16,88 @@ const InventoryManager = () => {
 };
 
 const StockAvailability = () => {
-    const [data] = useState([
-        { id: '1', name: 'Bamboo Toothbrush', sku: 'BT-001', stock: 150, status: 'In Stock' },
-        { id: '2', name: 'Cotton Pads', sku: 'CP-002', stock: 45, status: 'In Stock' },
-        { id: '3', name: 'Glass Bottle', sku: 'GB-003', stock: 0, status: 'Out of Stock' }
-    ]);
+    const [data, setData] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    React.useEffect(() => {
+        fetchData();
+    }, []);
+
+    const fetchData = async () => {
+        try {
+            const result = await FirebaseService.getProducts();
+            const flattenedData = [];
+
+            result.forEach(p => {
+                if (p.type === 'multiple count' && p.variants && p.variants.length > 0) {
+                    p.variants.forEach((v, index) => {
+                        flattenedData.push({
+                            id: `${p.id}_${index}`, // Composite ID
+                            productId: p.id,
+                            name: `${p.name} - ${v.name}`,
+                            category: p.category,
+                            stock: parseInt(v.stock || 0),
+                            variantIndex: index,
+                            isVariant: true,
+                            status: getStatus(parseInt(v.stock || 0))
+                        });
+                    });
+                } else {
+                    flattenedData.push({
+                        id: p.id,
+                        productId: p.id,
+                        name: p.name,
+                        category: p.category,
+                        stock: parseInt(p.stock || 0),
+                        isVariant: false,
+                        status: getStatus(parseInt(p.stock || 0))
+                    });
+                }
+            });
+
+            setData(flattenedData);
+        } catch (error) {
+            console.error("Error fetching inventory", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const getStatus = (stock) => {
+        if (stock === 0) return 'Out of Stock';
+        if (stock < 10) return 'Low Stock';
+        return 'In Stock';
+    };
 
     const columns = [
-        { key: 'name', label: 'Product Name' },
-        { key: 'sku', label: 'SKU' },
+        { key: 'name', label: 'Product / Variant' },
+        { key: 'category', label: 'Category' },
         { key: 'stock', label: 'Current Stock' },
         { key: 'status', label: 'Status' }
     ];
+
+    const handleEdit = async (item) => {
+        const newStock = prompt(`Enter new stock for ${item.name}:`, item.stock);
+        if (newStock !== null && !isNaN(newStock)) {
+            const stockValue = parseInt(newStock);
+            try {
+                if (item.isVariant) {
+                    // Fetch fresh product data to ensure we don't overwrite other changes
+                    const product = await FirebaseService.getProductById(item.productId);
+                    const newVariants = [...product.variants];
+                    newVariants[item.variantIndex].stock = stockValue;
+
+                    await FirebaseService.updateProduct(item.productId, { variants: newVariants });
+                } else {
+                    await FirebaseService.updateProduct(item.productId, { stock: stockValue });
+                }
+                fetchData();
+            } catch (error) {
+                console.error("Error updating stock", error);
+                alert("Failed to update stock");
+            }
+        }
+    };
 
     return (
         <div>
@@ -34,8 +105,8 @@ const StockAvailability = () => {
                 title="Stock Availability"
                 columns={columns}
                 data={data}
-                onAdd={() => { }}
-                onEdit={() => { }}
+                onAdd={() => alert("Please use 'Add Product' to add new items.")}
+                onEdit={handleEdit}
                 onDelete={() => { }}
             />
         </div>
@@ -43,23 +114,49 @@ const StockAvailability = () => {
 };
 
 const AddInventory = () => {
-    return (
-        <div style={{ padding: '2rem', backgroundColor: 'white', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)' }}>
-            <h2 style={{ marginBottom: '1.5rem' }}>Add Inventory</h2>
-            <p style={{ color: 'var(--color-text-light)' }}>Select a product to add stock...</p>
-            {/* Add Inventory Form would go here */}
-        </div>
-    );
+    return <StockAvailability />;
 };
 
 const LowStock = () => {
-    const [data] = useState([
-        { id: '4', name: 'Eco Tote Bag', sku: 'TB-004', stock: 5, status: 'Low Stock' }
-    ]);
+    const [data, setData] = useState([]);
+
+    React.useEffect(() => {
+        const fetchData = async () => {
+            const result = await FirebaseService.getProducts();
+            const flattenedData = [];
+
+            result.forEach(p => {
+                if (p.type === 'multiple count' && p.variants && p.variants.length > 0) {
+                    p.variants.forEach((v, index) => {
+                        const stock = parseInt(v.stock || 0);
+                        if (stock < 10 && stock > 0) {
+                            flattenedData.push({
+                                id: `${p.id}_${index}`,
+                                name: `${p.name} - ${v.name}`,
+                                stock: stock,
+                                status: 'Low Stock'
+                            });
+                        }
+                    });
+                } else {
+                    const stock = parseInt(p.stock || 0);
+                    if (stock < 10 && stock > 0) {
+                        flattenedData.push({
+                            id: p.id,
+                            name: p.name,
+                            stock: stock,
+                            status: 'Low Stock'
+                        });
+                    }
+                }
+            });
+            setData(flattenedData);
+        };
+        fetchData();
+    }, []);
 
     const columns = [
         { key: 'name', label: 'Product Name' },
-        { key: 'sku', label: 'SKU' },
         { key: 'stock', label: 'Current Stock' },
         { key: 'status', label: 'Status' }
     ];
@@ -77,13 +174,45 @@ const LowStock = () => {
 };
 
 const OutOfStock = () => {
-    const [data] = useState([
-        { id: '3', name: 'Glass Bottle', sku: 'GB-003', stock: 0, status: 'Out of Stock' }
-    ]);
+    const [data, setData] = useState([]);
+
+    React.useEffect(() => {
+        const fetchData = async () => {
+            const result = await FirebaseService.getProducts();
+            const flattenedData = [];
+
+            result.forEach(p => {
+                if (p.type === 'multiple count' && p.variants && p.variants.length > 0) {
+                    p.variants.forEach((v, index) => {
+                        const stock = parseInt(v.stock || 0);
+                        if (stock === 0) {
+                            flattenedData.push({
+                                id: `${p.id}_${index}`,
+                                name: `${p.name} - ${v.name}`,
+                                stock: stock,
+                                status: 'Out of Stock'
+                            });
+                        }
+                    });
+                } else {
+                    const stock = parseInt(p.stock || 0);
+                    if (stock === 0) {
+                        flattenedData.push({
+                            id: p.id,
+                            name: p.name,
+                            stock: stock,
+                            status: 'Out of Stock'
+                        });
+                    }
+                }
+            });
+            setData(flattenedData);
+        };
+        fetchData();
+    }, []);
 
     const columns = [
         { key: 'name', label: 'Product Name' },
-        { key: 'sku', label: 'SKU' },
         { key: 'stock', label: 'Current Stock' },
         { key: 'status', label: 'Status' }
     ];

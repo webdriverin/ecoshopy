@@ -2,20 +2,22 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../../components/UI/Button';
 import { Lock } from 'lucide-react';
+import FirebaseService from '../../services/FirebaseService';
 
 const AdminLogin = () => {
     const navigate = useNavigate();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
-    const handleLogin = (e) => {
+    const handleLogin = async (e) => {
         e.preventDefault();
-        // Simulate login
-        if (email === 'admin@ecoshopy.com' && password === 'admin123') {
-            localStorage.setItem('isAdmin', 'true');
+        try {
+            await FirebaseService.login(email, password);
+            localStorage.setItem('isAdmin', 'true'); // Keep for simple route protection if needed, but auth state is key
             navigate('/admin/dashboard');
-        } else {
-            alert('Invalid credentials');
+        } catch (error) {
+            console.error("Login error", error);
+            alert('Invalid credentials or login failed');
         }
     };
 

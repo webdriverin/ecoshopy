@@ -1,59 +1,24 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, ShoppingCart, Star } from 'lucide-react';
+import FirebaseService from '../../services/FirebaseService';
 import './FeaturedProducts.css';
 
-const FeaturedProducts = () => {
+const FeaturedProducts = ({ hideHeader = false }) => {
     const scrollContainerRef = useRef(null);
+    const [products, setProducts] = useState([]);
 
-    // Dummy data
-    const products = [
-        {
-            id: '1',
-            name: 'Bamboo Toothbrush Set',
-            price: 12.99,
-            image: 'https://images.unsplash.com/photo-1607613009820-a29f7bb6dcaf?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-            category: 'Personal Care',
-            rating: 4.5,
-            reviews: 128
-        },
-        {
-            id: '2',
-            name: 'Reusable Cotton Pads',
-            price: 18.50,
-            image: 'https://images.unsplash.com/photo-1556228720-1957be83f304?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-            category: 'Beauty',
-            rating: 4.8,
-            reviews: 85
-        },
-        {
-            id: '3',
-            name: 'Glass Water Bottle',
-            price: 24.00,
-            image: 'https://images.unsplash.com/photo-1602143407151-01114192003f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-            category: 'Accessories',
-            rating: 4.7,
-            reviews: 210
-        },
-        {
-            id: '4',
-            name: 'Eco-Friendly Tote Bag',
-            price: 15.00,
-            image: 'https://images.unsplash.com/photo-1597484662317-c93100d013ce?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-            category: 'Fashion',
-            rating: 4.6,
-            reviews: 95
-        },
-        {
-            id: '5',
-            name: 'Organic Cotton T-Shirt',
-            price: 35.00,
-            image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-            category: 'Fashion',
-            rating: 4.3,
-            reviews: 45
-        }
-    ];
+    useEffect(() => {
+        const fetchProducts = async () => {
+            try {
+                const data = await FirebaseService.getFeaturedProducts();
+                setProducts(data);
+            } catch (error) {
+                console.error("Error fetching featured products", error);
+            }
+        };
+        fetchProducts();
+    }, []);
 
     useEffect(() => {
         const container = scrollContainerRef.current;
@@ -94,27 +59,29 @@ const FeaturedProducts = () => {
     }, [products.length]);
 
     return (
-        <section className="featured-products-section">
+        <section className={`featured-products-section ${hideHeader ? 'no-padding' : ''}`}>
             <div className="container">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                    <h2 className="section-title" style={{ margin: 0, textAlign: 'left' }}>Trending Now</h2>
-                    <Link to="/shop" style={{ textDecoration: 'none' }}>
-                        <button style={{
-                            padding: '0.5rem 1rem',
-                            fontSize: '0.875rem',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.5rem',
-                            backgroundColor: 'var(--color-secondary)',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: 'var(--radius-md)',
-                            cursor: 'pointer'
-                        }}>
-                            View All <ArrowRight size={16} />
-                        </button>
-                    </Link>
-                </div>
+                {!hideHeader && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                        <h2 className="section-title" style={{ margin: 0, textAlign: 'left' }}>Trending Now</h2>
+                        <Link to="/shop" style={{ textDecoration: 'none' }}>
+                            <button style={{
+                                padding: '0.5rem 1rem',
+                                fontSize: '0.875rem',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.5rem',
+                                backgroundColor: 'var(--color-secondary)',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: 'var(--radius-md)',
+                                cursor: 'pointer'
+                            }}>
+                                View All <ArrowRight size={16} />
+                            </button>
+                        </Link>
+                    </div>
+                )}
 
                 <div className="featured-scroll-container" ref={scrollContainerRef}>
                     {products.map(product => (
@@ -138,7 +105,7 @@ const FeaturedProducts = () => {
                                             </div>
                                             <span style={{ fontSize: '0.8rem', color: '#888', marginLeft: '0.5rem' }}>({product.reviews})</span>
                                         </div>
-                                        <div className="featured-price">${product.price.toFixed(2)}</div>
+                                        <div className="featured-price">₹{product.price.toFixed(2)}</div>
                                     </div>
                                 </div>
                             </Link>

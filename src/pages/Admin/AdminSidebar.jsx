@@ -43,9 +43,7 @@ const AdminSidebar = () => {
             submenu: [
                 { label: 'View Products', path: '/admin/products' },
                 { label: 'Add Product', path: '/admin/products/add' },
-                { label: 'Add Combo Product', path: '/admin/products/add-combo' },
                 { label: 'Add Multiple Count', path: '/admin/products/add-multiple' },
-                { label: 'Add Digital Product', path: '/admin/products/add-digital' },
                 { label: 'Offers', path: '/admin/products/offers' },
                 { label: 'Deals', path: '/admin/products/deals' },
                 { label: 'Collections', path: '/admin/products/collections' },
@@ -81,6 +79,7 @@ const AdminSidebar = () => {
             submenu: [
                 { label: 'Category', path: '/admin/master/category' },
                 { label: 'Brands', path: '/admin/master/brands' },
+                { label: 'Deals', path: '/admin/master/deals' },
                 { label: 'Highlights', path: '/admin/master/highlights' },
                 { label: 'Features', path: '/admin/master/features' },
                 { label: 'Size Charts', path: '/admin/master/size-charts' },
@@ -95,6 +94,7 @@ const AdminSidebar = () => {
             icon: Monitor,
             submenu: [
                 { label: 'Home Page', path: '/admin/cms/home' },
+                { label: 'Categories', path: '/admin/cms/categories' },
                 { label: 'Pages', path: '/admin/cms/pages' },
                 { label: 'FAQs', path: '/admin/cms/faqs' }
             ]

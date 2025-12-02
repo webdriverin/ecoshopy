@@ -38,7 +38,7 @@ const Contact = () => {
                             </div>
                             <div>
                                 <div style={{ fontWeight: '600' }}>Phone</div>
-                                <div style={{ color: 'var(--color-text-light)' }}>+1 (555) 123-4567</div>
+                                <div style={{ color: 'var(--color-text-light)' }}>8129633414, 8129416400</div>
                             </div>
                         </div>
 
@@ -48,7 +48,11 @@ const Contact = () => {
                             </div>
                             <div>
                                 <div style={{ fontWeight: '600' }}>Location</div>
-                                <div style={{ color: 'var(--color-text-light)' }}>123 Eco Street, Green City, Earth</div>
+                                <div style={{ color: 'var(--color-text-light)' }}>
+                                    WARD NO. 111, BUILDING NO. : 901<br />
+                                    SWABAB NAGAR, MAIN ROAD,<br />
+                                    ALATHUR. PALAKKAD. DT.
+                                </div>
                             </div>
                         </div>
                     </div>

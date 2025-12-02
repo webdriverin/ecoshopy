@@ -41,7 +41,8 @@ const Login = () => {
             setShowResend(false);
         } catch (err) {
             console.error("Error resending email", err);
-            setResendMessage("Error sending email. Please try logging in again first.");
+            // Show the actual error message to the user for debugging
+            setResendMessage("Error: " + err.message);
         }
     };
 

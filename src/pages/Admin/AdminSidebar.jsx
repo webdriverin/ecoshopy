@@ -80,7 +80,8 @@ const AdminSidebar = () => {
             icon: Monitor,
             submenu: [
                 { label: 'Home Page', path: '/admin/cms/home' },
-                { label: 'Categories', path: '/admin/cms/categories' }
+                { label: 'Categories', path: '/admin/cms/categories' },
+                { label: 'Branding', path: '/admin/cms/branding' }
             ]
         },
         {

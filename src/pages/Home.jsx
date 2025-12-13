@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
 import Hero from '../components/Home/Hero';
 import FeaturedProducts from '../components/Home/FeaturedProducts';
@@ -108,6 +109,10 @@ const Home = () => {
 
     return (
         <div className="home-page">
+            <Helmet>
+                <title>Ecoshopy - Shop Sustainably, Live Consciously</title>
+                <meta name="description" content="Discover eco-friendly products, sustainable fashion, and organic essentials at Ecoshopy." />
+            </Helmet>
             {/* Best Buy Style: No Category Bar at top, usually in menu */}
             {/* <CategoryBar /> */}
 

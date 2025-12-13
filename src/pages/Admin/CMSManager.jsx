@@ -9,10 +9,200 @@ const CMSManager = () => {
         <Routes>
             <Route path="home" element={<HomePageBuilder />} />
             <Route path="categories" element={<CategoriesManager />} />
+            <Route path="branding" element={<BrandingManager />} />
             <Route path="*" element={<Navigate to="home" replace />} />
         </Routes>
     );
 };
+
+const BrandingManager = () => {
+    const [settings, setSettings] = useState({
+        storeName: '',
+        logo: '',
+        favicon: '',
+        contactEmail: '',
+        phoneNumber: '',
+        address: '',
+        maintenanceMode: false
+    });
+    const [loading, setLoading] = useState(false);
+    const [uploading, setUploading] = useState(false);
+
+    React.useEffect(() => {
+        const fetchSettings = async () => {
+            try {
+                const data = await FirebaseService.getStoreSettings();
+                if (data) setSettings(data);
+            } catch (error) {
+                console.error("Error fetching settings", error);
+            }
+        };
+        fetchSettings();
+    }, []);
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setSettings(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleUpload = async (e, field) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        setUploading(true);
+        try {
+            // For logos, we usually WANT transparency, so we use standard uploadImage
+            // which preserves PNG alpha channel.
+            const url = await FirebaseService.uploadImage(file, 'branding');
+            setSettings(prev => ({ ...prev, [field]: url }));
+        } catch (error) {
+            console.error("Upload failed", error);
+            alert("Upload failed: " + error.message);
+        } finally {
+            setUploading(false);
+        }
+    };
+
+    const handleSave = async () => {
+        setLoading(true);
+        try {
+            await FirebaseService.updateStoreSettings(settings);
+            alert("Settings saved successfully!");
+        } catch (error) {
+            console.error("Save failed", error);
+            alert("Failed to save settings: " + error.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <div style={{ maxWidth: '800px', margin: '0 auto', padding: '2rem', backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
+            <h1 style={{ marginBottom: '2rem', fontSize: '1.5rem', fontWeight: 'bold' }}>Store Branding & Settings</h1>
+
+            <div style={{ display: 'grid', gap: '1.5rem' }}>
+                {/* Logo Section */}
+                <div style={{ padding: '1.5rem', border: '1px solid #e5e7eb', borderRadius: '8px' }}>
+                    <h2 style={{ fontSize: '1.1rem', fontWeight: '600', marginBottom: '1rem' }}>Logo & Favicon</h2>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+                        <div>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Store Logo</label>
+                            <div style={{ marginBottom: '1rem', height: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px dashed #e5e7eb', borderRadius: '6px', overflow: 'hidden', backgroundColor: '#f9fafb' }}>
+                                {settings.logo ? (
+                                    <img src={settings.logo} alt="Store Logo" style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }} />
+                                ) : (
+                                    <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>No Logo</span>
+                                )}
+                            </div>
+                            <input type="file" onChange={(e) => handleUpload(e, 'logo')} accept="image/*" style={{ fontSize: '0.875rem' }} disabled={uploading} />
+                        </div>
+                        <div>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Favicon</label>
+                            <div style={{ marginBottom: '1rem', height: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px dashed #e5e7eb', borderRadius: '6px', overflow: 'hidden', backgroundColor: '#f9fafb' }}>
+                                {settings.favicon ? (
+                                    <img src={settings.favicon} alt="Favicon" style={{ width: '32px', height: '32px' }} />
+                                ) : (
+                                    <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>No Favicon</span>
+                                )}
+                            </div>
+                            <input type="file" onChange={(e) => handleUpload(e, 'favicon')} accept="image/*" style={{ fontSize: '0.875rem' }} disabled={uploading} />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Store Info Section */}
+                <div style={{ padding: '1.5rem', border: '1px solid #e5e7eb', borderRadius: '8px' }}>
+                    <h2 style={{ fontSize: '1.1rem', fontWeight: '600', marginBottom: '1rem' }}>General Information</h2>
+                    <div style={{ display: 'grid', gap: '1rem' }}>
+                        <div>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Store Name</label>
+                            <input
+                                type="text"
+                                name="storeName"
+                                value={settings.storeName || ''}
+                                onChange={handleChange}
+                                placeholder="Ecoshopy"
+                                style={{ width: '100%', padding: '0.75rem', borderRadius: '6px', border: '1px solid #d1d5db' }}
+                            />
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Contact Email</label>
+                                <input
+                                    type="email"
+                                    name="contactEmail"
+                                    value={settings.contactEmail || ''}
+                                    onChange={handleChange}
+                                    style={{ width: '100%', padding: '0.75rem', borderRadius: '6px', border: '1px solid #d1d5db' }}
+                                />
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Phone Number</label>
+                                <input
+                                    type="text"
+                                    name="phoneNumber"
+                                    value={settings.phoneNumber || ''}
+                                    onChange={handleChange}
+                                    style={{ width: '100%', padding: '0.75rem', borderRadius: '6px', border: '1px solid #d1d5db' }}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Maintenance Mode Section */}
+                <div style={{ padding: '1.5rem', border: '1px solid #e5e7eb', borderRadius: '8px', backgroundColor: settings.maintenanceMode ? '#FEF2F2' : 'white' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <div>
+                            <h2 style={{ fontSize: '1.1rem', fontWeight: '600', marginBottom: '0.25rem', color: settings.maintenanceMode ? '#DC2626' : 'inherit' }}>Maintenance Mode</h2>
+                            <p style={{ fontSize: '0.875rem', color: '#6B7280' }}>
+                                When enabled, the public website will be hidden and show a "Under Maintenance" message. Admin panel remains accessible.
+                            </p>
+                        </div>
+                        <label style={{ position: 'relative', display: 'inline-block', width: '60px', height: '34px' }}>
+                            <input
+                                type="checkbox"
+                                checked={settings.maintenanceMode || false}
+                                onChange={(e) => setSettings(prev => ({ ...prev, maintenanceMode: e.target.checked }))}
+                                style={{ opacity: 0, width: 0, height: 0 }}
+                            />
+                            <span style={{
+                                position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0,
+                                backgroundColor: settings.maintenanceMode ? '#DC2626' : '#ccc',
+                                transition: '.4s', borderRadius: '34px'
+                            }}></span>
+                            <span style={{
+                                position: 'absolute', content: '""', height: '26px', width: '26px', left: '4px', bottom: '4px',
+                                backgroundColor: 'white', transition: '.4s', borderRadius: '50%',
+                                transform: settings.maintenanceMode ? 'translateX(26px)' : 'translateX(0)'
+                            }}></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '1rem' }}>
+                    <button
+                        onClick={handleSave}
+                        disabled={loading || uploading}
+                        style={{
+                            padding: '0.75rem 2rem',
+                            backgroundColor: 'var(--color-primary)',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '6px',
+                            fontWeight: '600',
+                            cursor: (loading || uploading) ? 'not-allowed' : 'pointer',
+                            opacity: (loading || uploading) ? 0.7 : 1
+                        }}
+                    >
+                        {loading ? 'Saving...' : 'Save Settings'}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 
 const HomePageBuilder = () => {
     const [tickers, setTickers] = useState([]);
@@ -122,9 +312,16 @@ const HomePageBuilder = () => {
     };
 
     const handleDeleteBanner = async (id) => {
+        console.log("Delete requested for ID:", id);
         if (window.confirm('Are you sure?')) {
-            await FirebaseService.deleteBanner(id);
-            setBanners(banners.filter(i => i.id !== id));
+            try {
+                await FirebaseService.deleteBanner(id);
+                console.log("Delete success");
+                setBanners(banners.filter(i => i.id !== id));
+            } catch (error) {
+                console.error("Delete failed", error);
+                alert("Delete failed: " + error.message);
+            }
         }
     };
 

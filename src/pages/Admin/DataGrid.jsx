@@ -141,8 +141,44 @@ const DataGrid = ({ title, columns, data, onAdd, onEdit, onDelete, onMoveUp, onM
                             const file = e.target.files[0];
                             if (file) {
                                 try {
-                                    console.log("Uploading file directly:", file.name, "Size:", file.size, "Type:", file.type);
-                                    const url = await FirebaseService.uploadImage(file, 'banners');
+                                    console.log("Processing file:", file.name);
+
+                                    // Helper to convert to JPEG
+                                    const convertToJpeg = (file) => {
+                                        return new Promise((resolve, reject) => {
+                                            const img = new Image();
+                                            img.onload = () => {
+                                                const canvas = document.createElement('canvas');
+                                                canvas.width = img.width;
+                                                canvas.height = img.height;
+                                                const ctx = canvas.getContext('2d');
+
+                                                // Fill white background (handles transparent PNGs)
+                                                ctx.fillStyle = '#FFFFFF';
+                                                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                                                ctx.drawImage(img, 0, 0);
+
+                                                canvas.toBlob((blob) => {
+                                                    if (blob) {
+                                                        const newFile = new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".jpg", {
+                                                            type: "image/jpeg",
+                                                            lastModified: Date.now(),
+                                                        });
+                                                        resolve(newFile);
+                                                    } else {
+                                                        reject(new Error("Canvas conversion failed"));
+                                                    }
+                                                }, 'image/jpeg', 0.9);
+                                            };
+                                            img.onerror = (err) => reject(err);
+                                            img.src = URL.createObjectURL(file);
+                                        });
+                                    };
+
+                                    const jpegFile = await convertToJpeg(file);
+                                    console.log("Converted to JPEG:", jpegFile.name);
+
+                                    const url = await FirebaseService.uploadImage(jpegFile, 'banners');
                                     console.log("Upload success:", url);
                                     onChange({ target: { value: url } });
                                 } catch (error) {
@@ -328,7 +364,15 @@ const DataGrid = ({ title, columns, data, onAdd, onEdit, onDelete, onMoveUp, onM
                                         ))}
                                         <td style={{ padding: '1rem', textAlign: 'right', whiteSpace: 'nowrap' }}>
                                             <button onClick={() => handleEditClick(item)} style={{ marginRight: '0.5rem', color: 'var(--color-text-light)' }}><Edit size={18} /></button>
-                                            <button onClick={() => onDelete(item.id)} style={{ color: 'var(--color-error)' }}><Trash2 size={18} /></button>
+                                            <button onClick={() => {
+                                                console.log("Delete clicked for item:", item);
+                                                if (item.id) {
+                                                    onDelete(item.id);
+                                                } else {
+                                                    console.error("Cannot delete item without ID:", item);
+                                                    alert("Error: Cannot delete this item (Missing ID)");
+                                                }
+                                            }} style={{ color: 'var(--color-error)' }}><Trash2 size={18} /></button>
                                             {onMoveUp && <button onClick={() => onMoveUp(item)} title="Move Up" style={{ marginLeft: '0.5rem', color: 'var(--color-primary)' }}><ArrowUp size={18} /></button>}
                                             {onMoveDown && <button onClick={() => onMoveDown(item)} title="Move Down" style={{ marginLeft: '0.5rem', color: 'var(--color-primary)' }}><ArrowDown size={18} /></button>}
                                         </td>

@@ -1,4 +1,6 @@
+import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import FirebaseService from './services/FirebaseService';
 import Layout from './components/Layout/Layout';
 import Home from './pages/Home';
 import Shop from './pages/Shop';
@@ -22,6 +24,61 @@ import { CartProvider } from './context/CartContext';
 import { Toaster } from 'react-hot-toast';
 
 function App() {
+  const [maintenanceMode, setMaintenanceMode] = useState(false);
+  const [isAdminRoute, setIsAdminRoute] = useState(false);
+
+  // Check Maintenance Mode
+  React.useEffect(() => {
+    const checkMaintenance = async () => {
+      try {
+        const settings = await FirebaseService.getStoreSettings();
+        setMaintenanceMode(settings?.maintenanceMode || false);
+      } catch (error) {
+        console.error("Error checking maintenance mode", error);
+      }
+    };
+
+    checkMaintenance();
+
+    // Set up a listener or interval if real-time toggle is needed, 
+    // but for now fetch on load is sufficient.
+    const interval = setInterval(checkMaintenance, 60000); // Check every minute
+    return () => clearInterval(interval);
+  }, []);
+
+  // Check if current route is admin
+  React.useEffect(() => {
+    setIsAdminRoute(window.location.pathname.startsWith('/admin'));
+  }, []);
+
+  if (maintenanceMode && !window.location.pathname.startsWith('/admin')) {
+    return (
+      <div style={{
+        position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+        backgroundColor: '#F3F4F6', zIndex: 9999, display: 'flex',
+        flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+        textAlign: 'center', padding: '2rem'
+      }}>
+        <div style={{ marginBottom: '2rem' }}>
+          {/* Use text logo if image fails or generic icon */}
+          <h1 style={{ fontSize: '3rem', fontWeight: '800', color: '#059669', letterSpacing: '2px', margin: 0 }}>
+            ECO<span style={{ color: '#10B981' }}>SHOPY</span>
+          </h1>
+        </div>
+        <h2 style={{ fontSize: '2rem', fontWeight: 'bold', color: '#1F2937', marginBottom: '1rem' }}>
+          We'll be back soon!
+        </h2>
+        <p style={{ fontSize: '1.25rem', color: '#4B5563', maxWidth: '600px', lineHeight: '1.6' }}>
+          Our website is currently under maintenance for improvements.
+          We apologize for the inconvenience and appreciate your patience.
+        </p>
+        <div style={{ marginTop: '3rem', padding: '1rem 2rem', backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
+          <p style={{ color: '#6B7280', fontSize: '0.9rem' }}>Expected return: Shortly</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <CartProvider>
       <Toaster position="top-center" reverseOrder={false} />

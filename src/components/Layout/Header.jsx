@@ -17,6 +17,44 @@ const Header = () => {
 
     const [allProducts, setAllProducts] = useState([]);
     const [categories, setCategories] = useState([]);
+    const [storeSettings, setStoreSettings] = useState({
+        logo: '', // No default logo
+        storeName: 'Ecoshopy',
+        favicon: ''
+    });
+
+    // Fetch Store Settings (Logo, Favicon)
+    useEffect(() => {
+        const fetchSettings = async () => {
+            try {
+                const settings = await FirebaseService.getStoreSettings();
+                if (settings) {
+                    setStoreSettings(prev => ({
+                        ...prev,
+                        ...settings,
+                        logo: settings.logo || '' // Use fetched logo or empty
+                    }));
+
+                    // Update Favicon dynamically
+                    if (settings.favicon) {
+                        const link = document.querySelector("link[rel*='icon']") || document.createElement('link');
+                        link.type = 'image/png';
+                        link.rel = 'icon';
+                        link.href = settings.favicon;
+                        document.getElementsByTagName('head')[0].appendChild(link);
+                    }
+
+                    // Update Page Title dynamically
+                    if (settings.storeName) {
+                        document.title = settings.storeName;
+                    }
+                }
+            } catch (error) {
+                console.error("Error fetching store settings", error);
+            }
+        };
+        fetchSettings();
+    }, []);
 
     // Fetch all products for search
     useEffect(() => {
@@ -47,9 +85,12 @@ const Header = () => {
 
     const suggestions = React.useMemo(() => {
         if (searchTerm.trim() === '') return [];
+        if (!allProducts) return [];
         return allProducts.filter(product =>
-            product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            product.category.toLowerCase().includes(searchTerm.toLowerCase())
+            product.name && (
+                product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                (product.category && product.category.toLowerCase().includes(searchTerm.toLowerCase()))
+            )
         ).slice(0, 5);
     }, [searchTerm, allProducts]);
 
@@ -91,7 +132,13 @@ const Header = () => {
                     {/* Logo & Menu */}
                     <div className="header-brand">
                         <Link to="/" className="logo">
-                            <img src="/src/assets/eco-logo.png" alt="Ecoshopy Logo" className="logo-image" />
+                            {storeSettings.logo ? (
+                                <img src={storeSettings.logo} alt={storeSettings.storeName} className="logo-image" style={{ height: '50px', objectFit: 'contain' }} />
+                            ) : (
+                                <span style={{ fontSize: '1.5rem', fontWeight: '800', color: 'white', letterSpacing: '1px' }}>
+                                    {storeSettings.storeName.toUpperCase().slice(0, 3)}<span style={{ color: 'var(--color-secondary)' }}>{storeSettings.storeName.toUpperCase().slice(3)}</span>
+                                </span>
+                            )}
                         </Link>
                         <button className="menu-btn" onClick={() => setIsMenuOpen(!isMenuOpen)}>
                             <Menu size={24} />

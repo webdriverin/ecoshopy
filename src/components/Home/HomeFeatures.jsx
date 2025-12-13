@@ -8,11 +8,7 @@ const features = [
         title: "100% Organic",
         description: "Sourced directly from certified organic farms."
     },
-    {
-        icon: <Truck size={32} />,
-        title: "Free Shipping",
-        description: "Free shipping on all orders above ₹499."
-    },
+
     {
         icon: <ShieldCheck size={32} />,
         title: "Secure Payment",

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import Button from '../components/UI/Button';
 import { signInWithGoogle, loginWithEmailAndPassword, resendVerificationEmail } from '../services/authService';
 import './Auth.css';
@@ -61,6 +62,10 @@ const Login = () => {
 
     return (
         <div className="auth-container">
+            <Helmet>
+                <title>Login - Ecoshopy</title>
+                <meta name="description" content="Login to your Ecoshopy account to track your orders, manage your profile, and shop faster." />
+            </Helmet>
             <div className="auth-card">
                 {error && (
                     <div className="alert alert-error">

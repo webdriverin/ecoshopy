@@ -1,5 +1,5 @@
 import { db, auth, storage } from '../firebase';
-import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, getDoc, query, where, orderBy, limit } from 'firebase/firestore';
+import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, getDoc, setDoc, query, where, orderBy, limit } from 'firebase/firestore';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
@@ -244,6 +244,25 @@ const FirebaseService = {
         } catch (error) {
             console.error("Failed to log audit action", error);
         }
+    },
+
+    // Store Settings (Logo, Branding, etc.)
+    getStoreSettings: async () => {
+        const docRef = doc(db, 'settings', 'general');
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+            return docSnap.data();
+        } else {
+            return {};
+        }
+    },
+    updateStoreSettings: (settings) => {
+        const docRef = doc(db, 'settings', 'general');
+        // use setDoc with merge: true to handle creation if not exists, but updateDoc is for existing.
+        // Safer to use setDoc with merge for singletons.
+        // But importing setDoc is needed.
+        // Let's check imports.
+        return setDoc(docRef, settings, { merge: true });
     },
 
     // Storage

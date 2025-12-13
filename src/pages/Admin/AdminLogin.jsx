@@ -13,13 +13,16 @@ const AdminLogin = () => {
         e.preventDefault();
         try {
             await FirebaseService.login(email, password);
-            localStorage.setItem('isAdmin', 'true'); // Keep for simple route protection if needed, but auth state is key
+            // In a real app, you'd check for a specific admin role/claim here
+            localStorage.setItem('isAdmin', 'true');
             navigate('/admin/dashboard');
         } catch (error) {
             console.error("Login error", error);
-            alert('Invalid credentials or login failed');
+            alert('Invalid credentials or login failed: ' + error.message);
         }
     };
+
+
 
     return (
         <div style={{

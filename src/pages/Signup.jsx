@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import Button from '../components/UI/Button';
 import { signInWithGoogle, registerWithEmailAndPassword } from '../services/authService';
 import './Auth.css';
@@ -68,6 +69,10 @@ const Signup = () => {
 
     return (
         <div className="auth-container">
+            <Helmet>
+                <title>Sign Up - Ecoshopy</title>
+                <meta name="description" content="Create an Ecoshopy account to start your sustainable shopping journey." />
+            </Helmet>
             <div className="auth-card">
                 {error && (
                     <div className="alert alert-error">

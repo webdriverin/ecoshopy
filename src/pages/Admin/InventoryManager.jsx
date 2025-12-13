@@ -15,15 +15,16 @@ const InventoryManager = () => {
     );
 };
 
+const getStatus = (stock) => {
+    if (stock === 0) return 'Out of Stock';
+    if (stock < 10) return 'Low Stock';
+    return 'In Stock';
+};
+
 const StockAvailability = () => {
     const [data, setData] = useState([]);
-    const [loading, setLoading] = useState(true);
 
-    React.useEffect(() => {
-        fetchData();
-    }, []);
-
-    const fetchData = async () => {
+    const fetchData = React.useCallback(async () => {
         try {
             const result = await FirebaseService.getProducts();
             const flattenedData = [];
@@ -58,16 +59,12 @@ const StockAvailability = () => {
             setData(flattenedData);
         } catch (error) {
             console.error("Error fetching inventory", error);
-        } finally {
-            setLoading(false);
         }
-    };
+    }, []);
 
-    const getStatus = (stock) => {
-        if (stock === 0) return 'Out of Stock';
-        if (stock < 10) return 'Low Stock';
-        return 'In Stock';
-    };
+    React.useEffect(() => {
+        fetchData();
+    }, [fetchData]);
 
     const columns = [
         { key: 'name', label: 'Product / Variant' },

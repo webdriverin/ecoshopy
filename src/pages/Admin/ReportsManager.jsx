@@ -20,7 +20,6 @@ const ReportsManager = () => {
 
 const CustomerReports = () => {
     const [data, setData] = useState([]);
-    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -33,10 +32,12 @@ const CustomerReports = () => {
                 // Aggregate order data per customer
                 const customerStats = customers.map(customer => {
                     const customerOrders = orders.filter(o => o.userId === customer.id || o.email === customer.email);
-                    const totalSpent = customerOrders.reduce((sum, o) => sum + (parseFloat(o.total) || 0), 0);
+                    // Filter for paid orders only
+                    const paidOrders = customerOrders.filter(o => o.paymentStatus === 'Paid' || o.status === 'Delivered');
+                    const totalSpent = paidOrders.reduce((sum, o) => sum + (parseFloat(o.totalAmount) || 0), 0);
                     return {
                         ...customer,
-                        ordersCount: customerOrders.length,
+                        ordersCount: customerOrders.length, // Keep total count or change to paid count? Usually total count is fine, but spend should be real.
                         totalSpent: `₹${totalSpent.toFixed(2)}`
                     };
                 });
@@ -44,8 +45,6 @@ const CustomerReports = () => {
                 setData(customerStats);
             } catch (error) {
                 console.error("Error fetching customer reports", error);
-            } finally {
-                setLoading(false);
             }
         };
         fetchData();
@@ -63,7 +62,6 @@ const CustomerReports = () => {
 
 const StockReports = () => {
     const [data, setData] = useState([]);
-    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -82,8 +80,6 @@ const StockReports = () => {
                 }));
             } catch (error) {
                 console.error("Error fetching stock reports", error);
-            } finally {
-                setLoading(false);
             }
         };
         fetchData();

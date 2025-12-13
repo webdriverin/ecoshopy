@@ -49,7 +49,7 @@ const Contact = () => {
                             <div>
                                 <div style={{ fontWeight: '600' }}>Location</div>
                                 <div style={{ color: 'var(--color-text-light)' }}>
-                                    WARD NO. 111, BUILDING NO. : 901<br />
+                                    BUILDING NO. : 901<br />
                                     SWABAB NAGAR, MAIN ROAD,<br />
                                     ALATHUR. PALAKKAD. DT.
                                 </div>

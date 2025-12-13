@@ -1,49 +1,67 @@
 :root {
-  /* Brand Colors */
-  --color-primary: #35661e;
-  /* Darker Green */
-  --color-primary-dark: #264a15;
-  /* Even Darker Green */
-  --color-secondary: #D0DB61;
-  --color-accent: #F9EEBD;
+  /* Core Brand Palette - Deep Eco */
+  --color-primary: #1B4332;
+  /* Deep Forest Green */
+  --color-primary-dark: #081C15;
+  /* Darker Night Green */
+  --color-secondary: #40916C;
+  /* Vibrant Fern Green */
+  --color-secondary-dark: #2D6A4F;
+  /* Darker Fern */
+  --color-accent: #95D5B2;
+  /* Soft Mint */
+  --color-accent-light: #D8F3DC;
+  /* Very Light Mint */
 
-  /* Text Colors */
-  --color-text-main: #333333;
-  --color-text-light: #666666;
-  --color-text-lighter: #999999;
+  /* Backgrounds - Richer & Greener */
+  --color-bg-body: #F1F8E9;
+  /* Visible Mint Cream */
+  --color-bg-card: #ffffff;
+  --color-bg-section: #E8F5E9;
+  /* Green Tint */
+  --color-bg-gradient: linear-gradient(135deg, #F1F8E9 0%, #D8F3DC 100%);
 
-  /* UI Colors */
-  --color-bg-body: #F4F4F4;
-  --color-bg-card: #FFFFFF;
-  /* Warmer Cream White */
-  --color-border: #E8E6D9;
-  /* Warm Gray Border */
-  --color-error: #EF4444;
-  --color-success: #10B981;
+  /* Text */
+  --color-text-main: #1B4332;
+  /* Dark Green Text */
+  --color-text-light: #52796F;
+  /* Muted Green Text */
+  --color-text-dark: #000000;
+
+  --color-border: #95D5B2;
+  /* Mint Border */
 
   /* Typography */
   --font-family-main: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-heading: 'Outfit', sans-serif;
 
   /* Spacing */
-  --spacing-xs: 0.25rem;
-  --spacing-sm: 0.5rem;
-  --spacing-md: 1rem;
-  --spacing-lg: 1.5rem;
-  --spacing-xl: 2rem;
-  --spacing-2xl: 3rem;
+  --spacing-xs: 0.5rem;
+  --spacing-sm: 1rem;
+  --spacing-md: 1.5rem;
+  --spacing-lg: 2rem;
+  --spacing-xl: 3rem;
+  --spacing-xxl: 5rem;
 
-  /* Border Radius */
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 16px;
+  /* Border Radius - Organic Feel */
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
   --radius-full: 9999px;
 
-  /* Shadows */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  /* Shadows - Organic & Soft */
+  --shadow-sm: 0 2px 4px rgba(27, 67, 50, 0.05);
+  --shadow-md: 0 8px 16px -4px rgba(27, 67, 50, 0.1);
+  --shadow-lg: 0 20px 25px -5px rgba(27, 67, 50, 0.1);
+  --shadow-xl: 0 30px 60px -12px rgba(27, 67, 50, 0.15);
+  --shadow-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+
+  /* Layout */
+  --header-height: 80px;
+  --container-width: 1400px;
 
   /* Transitions */
-  --transition-fast: 150ms ease;
-  --transition-normal: 300ms ease;
+  --transition-fast: 0.2s ease;
+  --transition-normal: 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --transition-slow: 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }

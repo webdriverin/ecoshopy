@@ -19,6 +19,7 @@ const Signup = () => {
 
     useEffect(() => {
         if (location.state?.message) {
+            // eslint-disable-next-line
             setError(location.state.message);
         }
     }, [location.state]);

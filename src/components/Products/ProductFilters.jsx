@@ -21,10 +21,10 @@ const ProductFilters = ({ filters, onFilterChange, onClearFilters }) => {
 
     const priceRanges = [
         { label: 'All', value: 'all' },
-        { label: 'Under ₹2000', value: '0-25' },
-        { label: '₹2000 - ₹5000', value: '25-50' },
-        { label: '₹5000 - ₹10000', value: '50-100' },
-        { label: 'Over ₹10000', value: '100-plus' }
+        { label: 'Under ₹100', value: '0-100' },
+        { label: '₹100 - ₹500', value: '100-500' },
+        { label: '₹500 - ₹1000', value: '500-1000' },
+        { label: 'Over ₹1000', value: '1000-plus' }
     ];
 
     return (

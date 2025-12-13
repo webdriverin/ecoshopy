@@ -8,9 +8,7 @@ const CMSManager = () => {
     return (
         <Routes>
             <Route path="home" element={<HomePageBuilder />} />
-            <Route path="pages" element={<PagesManager />} />
             <Route path="categories" element={<CategoriesManager />} />
-            <Route path="faqs" element={<FAQManager />} />
             <Route path="*" element={<Navigate to="home" replace />} />
         </Routes>
     );
@@ -22,14 +20,6 @@ const HomePageBuilder = () => {
     const [ads, setAds] = useState([]);
     const [testimonials, setTestimonials] = useState([]);
     const [collections, setCollections] = useState([]);
-
-    React.useEffect(() => {
-        fetchTickers();
-        fetchBanners();
-        fetchAds();
-        fetchTestimonials();
-        fetchCollections();
-    }, []);
 
     const fetchTickers = async () => {
         const result = await FirebaseService.getTickers();
@@ -56,28 +46,36 @@ const HomePageBuilder = () => {
         setCollections(result);
     };
 
+    React.useEffect(() => {
+        fetchTickers();
+        fetchBanners();
+        fetchAds();
+        fetchTestimonials();
+        fetchCollections();
+    }, []);
+
     // Add Handlers
-    const handleAddTicker = async ({ id, ...item }) => {
+    const handleAddTicker = async ({ ...item }) => {
         await FirebaseService.addTicker({ ...item, status: 'Active' });
         await fetchTickers();
     };
 
-    const handleAddBanner = async ({ id, ...item }) => {
+    const handleAddBanner = async ({ ...item }) => {
         await FirebaseService.addBanner({ ...item, status: 'Active' });
         await fetchBanners();
     };
 
-    const handleAddAd = async ({ id, ...item }) => {
+    const handleAddAd = async ({ ...item }) => {
         await FirebaseService.addAd({ ...item, status: 'Active' });
         await fetchAds();
     };
 
-    const handleAddTestimonial = async ({ id, ...item }) => {
+    const handleAddTestimonial = async ({ ...item }) => {
         await FirebaseService.addTestimonial({ ...item, status: 'Active' });
         await fetchTestimonials();
     };
 
-    const handleAddCollection = async ({ id, ...item }) => {
+    const handleAddCollection = async ({ ...item }) => {
         await FirebaseService.addFeaturedCollection({ ...item, status: 'Active' });
         await fetchCollections();
     };
@@ -251,16 +249,16 @@ const HomePageBuilder = () => {
 const PagesManager = () => {
     const [data, setData] = useState([]);
 
-    React.useEffect(() => {
-        fetchData();
-    }, []);
-
     const fetchData = async () => {
         const result = await FirebaseService.getPages();
         setData(result);
     };
 
-    const handleAdd = async ({ id, ...item }) => {
+    React.useEffect(() => {
+        fetchData();
+    }, []);
+
+    const handleAdd = async ({ ...item }) => {
         await FirebaseService.addPage({ ...item, status: 'Draft' });
         await fetchData();
     };
@@ -289,16 +287,16 @@ const PagesManager = () => {
 const FAQManager = () => {
     const [data, setData] = useState([]);
 
-    React.useEffect(() => {
-        fetchData();
-    }, []);
-
     const fetchData = async () => {
         const result = await FirebaseService.getFAQs();
         setData(result);
     };
 
-    const handleAdd = async ({ id, ...item }) => {
+    React.useEffect(() => {
+        fetchData();
+    }, []);
+
+    const handleAdd = async ({ ...item }) => {
         await FirebaseService.addFAQ(item);
         await fetchData();
     };
@@ -326,16 +324,16 @@ const FAQManager = () => {
 const CategoriesManager = () => {
     const [data, setData] = useState([]);
 
-    React.useEffect(() => {
-        fetchData();
-    }, []);
-
     const fetchData = async () => {
         const result = await FirebaseService.getCategories();
         setData(result);
     };
 
-    const handleAdd = async ({ id, ...item }) => {
+    React.useEffect(() => {
+        fetchData();
+    }, []);
+
+    const handleAdd = async ({ ...item }) => {
         await FirebaseService.addCategory(item);
         await fetchData();
     };
@@ -358,7 +356,65 @@ const CategoriesManager = () => {
         { key: 'link', label: 'Link (Optional)' }
     ];
 
-    return <DataGrid title="Categories" columns={columns} data={data} onAdd={handleAdd} onEdit={handleEdit} onDelete={handleDelete} />;
+    const handleMoveUp = async (item) => {
+        const index = data.findIndex(i => i.id === item.id);
+        if (index > 0) {
+            const prevItem = data[index - 1];
+            const itemOrder = item.order || index;
+            const prevItemOrder = prevItem.order || (index - 1);
+
+            const newOrderForItem = prevItemOrder;
+            const newOrderForPrev = itemOrder;
+
+            try {
+                // Determine orders to swap
+                const order1 = typeof item.order === 'number' ? item.order : index;
+                const order2 = typeof prevItem.order === 'number' ? prevItem.order : index - 1;
+
+                let newOrder1 = order2;
+                let newOrder2 = order1;
+
+                if (newOrder1 === newOrder2) {
+                    newOrder1 = index - 1;
+                    newOrder2 = index;
+                }
+
+                await FirebaseService.updateCategory(item.id, { order: newOrder1 });
+                await FirebaseService.updateCategory(prevItem.id, { order: newOrder2 });
+                fetchData();
+            } catch (error) {
+                console.error("Error moving category", error);
+            }
+        }
+    };
+
+    const handleMoveDown = async (item) => {
+        const index = data.findIndex(i => i.id === item.id);
+        if (index < data.length - 1) {
+            const nextItem = data[index + 1];
+
+            const order1 = typeof item.order === 'number' ? item.order : index;
+            const order2 = typeof nextItem.order === 'number' ? nextItem.order : index + 1;
+
+            let newOrder1 = order2;
+            let newOrder2 = order1;
+
+            if (newOrder1 === newOrder2) {
+                newOrder1 = index + 1;
+                newOrder2 = index;
+            }
+
+            try {
+                await FirebaseService.updateCategory(item.id, { order: newOrder1 });
+                await FirebaseService.updateCategory(nextItem.id, { order: newOrder2 });
+                fetchData();
+            } catch (error) {
+                console.error("Error moving category", error);
+            }
+        }
+    };
+
+    return <DataGrid title="Categories" columns={columns} data={data} onAdd={handleAdd} onEdit={handleEdit} onDelete={handleDelete} onMoveUp={handleMoveUp} onMoveDown={handleMoveDown} />;
 };
 
 export default CMSManager;

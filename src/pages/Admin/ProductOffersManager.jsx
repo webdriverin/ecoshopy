@@ -8,13 +8,8 @@ import { Tag, X, Save, Percent, Calendar, Plus, Edit, Trash2, Search } from 'luc
 const ProductOffersManager = () => {
     return (
         <Routes>
-            <Route path="offers" element={<ProductOfferGrid title="Product Offers" />} />
-            {/* Keep other routes as Generic for now, or update if requested */}
-            <Route path="deals" element={<GenericOfferManager title="Deals" type="deal" />} />
-            <Route path="collections" element={<CollectionManager />} />
             <Route path="coupons" element={<GenericOfferManager title="Coupons" type="coupon" />} />
-            <Route path="freebies" element={<GenericOfferManager title="Freebies" type="freebie" />} />
-            <Route path="*" element={<Navigate to="offers" replace />} />
+            <Route path="*" element={<Navigate to="coupons" replace />} />
         </Routes>
     );
 };
@@ -617,7 +612,6 @@ const ProductOfferGrid = ({ title }) => {
 const GenericOfferManager = ({ title, type }) => {
     const [data, setData] = useState([]);
     const [products, setProducts] = useState([]);
-    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchInitialData = async () => {
@@ -630,8 +624,6 @@ const GenericOfferManager = ({ title, type }) => {
                 setProducts(productsData.map(p => ({ label: p.name, value: p.name })));
             } catch (error) {
                 console.error("Error fetching data", error);
-            } finally {
-                setLoading(false);
             }
         };
         fetchInitialData();

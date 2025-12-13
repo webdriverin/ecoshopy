@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import Button from '../components/UI/Button';
 import { signInWithGoogle, loginWithEmailAndPassword, resendVerificationEmail } from '../services/authService';
 import './Auth.css';
 
 const Login = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
@@ -20,7 +21,8 @@ const Login = () => {
 
         try {
             await loginWithEmailAndPassword(email, password);
-            navigate('/profile');
+            const from = location.state?.from || '/profile';
+            navigate(from);
         } catch (error) {
             console.error("Login failed", error);
             if (error.message.includes("verify your email")) {
@@ -49,7 +51,8 @@ const Login = () => {
     const handleGoogleLogin = async () => {
         try {
             await signInWithGoogle();
-            navigate('/profile');
+            const from = location.state?.from || '/profile';
+            navigate(from);
         } catch (error) {
             console.error("Google login failed", error);
             setError("Google login failed. Please try again.");

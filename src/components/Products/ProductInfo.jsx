@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import Button from '../UI/Button';
-import { Star, Minus, Plus, ShoppingCart, Heart, ChevronDown, ChevronUp } from 'lucide-react';
+import { Star, Minus, Plus, ShoppingCart, Heart, ChevronDown, ChevronUp, Check, Package, Truck, FileText, Sparkles, Info } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 
 const ProductInfo = ({ product }) => {
@@ -10,21 +10,53 @@ const ProductInfo = ({ product }) => {
     const { addToCart } = useCart();
     const navigate = useNavigate();
 
+    // Variant Logic
+    const hasVariants = product.variants && product.variants.length > 0;
+    const [selectedVariant, setSelectedVariant] = useState(null);
+
+    useEffect(() => {
+        if (hasVariants) {
+            // Default to the first variant (usually the cheapest or base one)
+            // eslint-disable-next-line
+            setSelectedVariant(product.variants[0]);
+        } else {
+            setSelectedVariant(null);
+        }
+    }, [product.id, hasVariants, product.variants]);
+
+    // Determine current price, mrp, and stock based on selection
+    const currentPrice = selectedVariant ? selectedVariant.price : product.price;
+    const currentMrp = selectedVariant ? selectedVariant.mrp : product.mrp;
+    const currentStock = selectedVariant ? selectedVariant.stock : product.stock;
+
     const handleQuantityChange = (type) => {
+        const maxStock = parseInt(currentStock || 100);
         if (type === 'decrease' && quantity > 1) {
             setQuantity(quantity - 1);
-        } else if (type === 'increase' && quantity < (product.stock || 100)) {
+        } else if (type === 'increase' && quantity < maxStock) {
             setQuantity(quantity + 1);
         }
     };
 
     const handleAddToCart = () => {
-        addToCart(product, quantity);
+        const itemToAdd = {
+            ...product,
+            price: currentPrice,
+            mrp: currentMrp,
+            selectedVariant: selectedVariant // Pass variant info to cart
+        };
+        addToCart(itemToAdd, quantity);
         toast.success('Added to cart!');
     };
 
     const handleBuyNow = () => {
-        addToCart(product, quantity);
+        const itemToAdd = {
+            ...product,
+            price: currentPrice,
+            mrp: currentMrp,
+            selectedVariant: selectedVariant
+        };
+        addToCart(itemToAdd, quantity);
         navigate('/checkout');
     };
 
@@ -47,30 +79,65 @@ const ProductInfo = ({ product }) => {
             </div>
 
             <div className="product-price">
-                {product.mrp && Number(product.mrp) > Number(product.price) ? (
+                {currentMrp && Number(currentMrp) > Number(currentPrice) ? (
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
                         <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
-                            <span style={{ color: '#CC0C39', fontSize: '1.5rem', fontWeight: '300' }}>
-                                -{Math.round(((Number(product.mrp) - Number(product.price)) / Number(product.mrp)) * 100)}%
-                            </span>
+                            {product.offerText && (
+                                <span style={{ color: '#CC0C39', fontSize: '1.5rem', fontWeight: '300' }}>
+                                    {product.offerText}
+                                </span>
+                            )}
                             <span style={{ fontSize: '1.75rem', fontWeight: '500' }}>
                                 <sup style={{ fontSize: '0.875rem', top: '-0.5em' }}>₹</sup>
-                                {Number(product.price).toLocaleString('en-IN')}
+                                {Number(currentPrice).toLocaleString('en-IN')}
                             </span>
                         </div>
                         <div style={{ color: '#565959', fontSize: '0.875rem' }}>
-                            M.R.P.: <span style={{ textDecoration: 'line-through' }}>₹{Number(product.mrp).toLocaleString('en-IN')}</span>
+                            M.R.P.: <span style={{ textDecoration: 'line-through' }}>₹{Number(currentMrp).toLocaleString('en-IN')}</span>
                         </div>
                     </div>
                 ) : (
                     <span style={{ fontSize: '1.75rem', fontWeight: '500' }}>
                         <sup style={{ fontSize: '0.875rem', top: '-0.5em' }}>₹</sup>
-                        {Number(product.price).toLocaleString('en-IN')}
+                        {Number(currentPrice).toLocaleString('en-IN')}
                     </span>
                 )}
             </div>
 
-
+            {/* Variant Selector */}
+            {hasVariants && (
+                <div style={{ marginBottom: '1.5rem' }}>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', fontSize: '0.9rem' }}>Select Option:</label>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
+                        {product.variants.map((variant, index) => {
+                            const isSelected = selectedVariant && selectedVariant.name === variant.name;
+                            return (
+                                <button
+                                    key={index}
+                                    onClick={() => setSelectedVariant(variant)}
+                                    style={{
+                                        padding: '0.5rem 1rem',
+                                        border: isSelected ? '2px solid var(--color-primary)' : '1px solid var(--color-border)',
+                                        borderRadius: 'var(--radius-md)',
+                                        backgroundColor: isSelected ? '#F0FDF4' : 'white',
+                                        color: isSelected ? 'var(--color-primary)' : 'var(--color-text-main)',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        alignItems: 'center',
+                                        minWidth: '80px',
+                                        transition: 'all 0.2s'
+                                    }}
+                                >
+                                    <span style={{ fontWeight: '600' }}>{variant.name}</span>
+                                    {/* Optional: Show price diff or actual price in button */}
+                                    {/* <span style={{ fontSize: '0.75rem', color: 'var(--color-text-light)' }}>₹{variant.price}</span> */}
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
 
             <div className="actions-row">
                 <div className="quantity-selector">
@@ -85,7 +152,7 @@ const ProductInfo = ({ product }) => {
                     <button
                         onClick={() => handleQuantityChange('increase')}
                         className="qty-btn"
-                        disabled={quantity >= (product.stock || 100)}
+                        disabled={quantity >= (parseInt(currentStock) || 100)}
                     >
                         <Plus size={16} />
                     </button>
@@ -95,18 +162,18 @@ const ProductInfo = ({ product }) => {
                     <Button
                         variant="primary"
                         onClick={handleAddToCart}
-                        disabled={product.stock <= 0}
+                        disabled={parseInt(currentStock) <= 0}
                         className="add-to-cart-btn"
                         style={{ flex: 1 }}
                     >
                         <ShoppingCart size={20} />
-                        Add
+                        {parseInt(currentStock) <= 0 ? 'Out of Stock' : 'Add'}
                     </Button>
 
                     <Button
                         variant="secondary"
                         onClick={handleBuyNow}
-                        disabled={product.stock <= 0}
+                        disabled={parseInt(currentStock) <= 0}
                         className="buy-now-btn"
                         style={{ flex: 1 }}
                     >
@@ -114,28 +181,30 @@ const ProductInfo = ({ product }) => {
                     </Button>
                 </div>
 
-                <button
-                    className="wishlist-btn"
-                    title="Add to Wishlist"
-                >
-                    <Heart size={20} />
-                </button>
+
             </div>
 
+            {/* Stock Status Message */}
+            {parseInt(currentStock) < 10 && parseInt(currentStock) > 0 && (
+                <div style={{ color: '#B12704', fontSize: '0.875rem', marginTop: '0.5rem', fontWeight: '500' }}>
+                    Only {currentStock} left in stock - order soon.
+                </div>
+            )}
+
             <div className="product-accordions" style={{ marginTop: '2rem', borderTop: '1px solid var(--color-border)' }}>
-                <AccordionItem title="Product Information" defaultOpen={true}>
+                <AccordionItem title="Product Information" icon={<Package size={20} />} defaultOpen={true}>
                     <p style={{ lineHeight: '1.6', color: 'var(--color-text-light)', marginBottom: '1rem' }}>
                         {product.description}
                     </p>
                     {product.keyFeatures && product.keyFeatures.length > 0 && (
                         <div style={{ marginTop: '1rem' }}>
                             <h4 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                <span style={{ fontSize: '1.2rem' }}>✨</span> Key Features
+                                <Sparkles size={18} color="var(--color-secondary-dark)" /> Key Features
                             </h4>
                             <ul style={{ listStyle: 'none', padding: 0 }}>
                                 {product.keyFeatures.map((feature, index) => (
                                     <li key={index} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', marginBottom: '0.75rem', color: 'var(--color-text-main)' }}>
-                                        <span style={{ color: 'var(--color-success)', fontWeight: 'bold' }}>✓</span>
+                                        <Check size={16} color="var(--color-success)" style={{ marginTop: '4px' }} />
                                         <span style={{ lineHeight: '1.5' }}>{feature}</span>
                                     </li>
                                 ))}
@@ -144,30 +213,15 @@ const ProductInfo = ({ product }) => {
                     )}
                 </AccordionItem>
 
-                <AccordionItem title="Shipping and Delivery">
-                    {product.shippingInfo ? (
+                {product.shippingInfo && (
+                    <AccordionItem title="Shipping and Delivery" icon={<Truck size={20} />}>
                         <p style={{ fontSize: '0.9rem', color: 'var(--color-text-light)', lineHeight: '1.6', whiteSpace: 'pre-line' }}>
                             {product.shippingInfo}
                         </p>
-                    ) : (
-                        <>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
-                                <div style={{ padding: '0.75rem', backgroundColor: '#F3F4F6', borderRadius: '50%' }}>
-                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
-                                </div>
-                                <div>
-                                    <p style={{ fontWeight: '600', marginBottom: '0.25rem' }}>Free Shipping</p>
-                                    <p style={{ fontSize: '0.875rem', color: 'var(--color-text-light)' }}>On all orders over ₹500</p>
-                                </div>
-                            </div>
-                            <p style={{ fontSize: '0.9rem', color: 'var(--color-text-light)', lineHeight: '1.6' }}>
-                                We aim to deliver your order within 3-5 business days. All products are packaged in eco-friendly, biodegradable materials.
-                            </p>
-                        </>
-                    )}
-                </AccordionItem>
+                    </AccordionItem>
+                )}
 
-                <AccordionItem title="Additional Information">
+                <AccordionItem title="Additional Information" icon={<FileText size={20} />}>
                     <div className="product-meta-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', fontSize: '0.9rem' }}>
                         <div>
                             <span style={{ color: 'var(--color-text-light)' }}>SKU:</span>
@@ -188,7 +242,7 @@ const ProductInfo = ({ product }) => {
 
                 {/* Custom Sections */}
                 {product.customSections && product.customSections.map((section, index) => (
-                    <AccordionItem key={index} title={section.title}>
+                    <AccordionItem key={index} title={section.title} icon={<Info size={20} />}>
                         <p style={{ fontSize: '0.9rem', color: 'var(--color-text-light)', lineHeight: '1.6', whiteSpace: 'pre-line' }}>
                             {section.content}
                         </p>
@@ -200,7 +254,7 @@ const ProductInfo = ({ product }) => {
     );
 };
 
-const AccordionItem = ({ title, children, defaultOpen = false }) => {
+const AccordionItem = ({ title, children, icon, defaultOpen = false }) => {
     const [isOpen, setIsOpen] = useState(defaultOpen);
 
     return (
@@ -223,10 +277,7 @@ const AccordionItem = ({ title, children, defaultOpen = false }) => {
                 }}
             >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    {/* Icon based on title could go here */}
-                    {title === 'Product Information' && <span style={{ fontSize: '1.2rem' }}>📦</span>}
-                    {title === 'Shipping and Delivery' && <span style={{ fontSize: '1.2rem' }}>🚚</span>}
-                    {title === 'Additional Information' && <span style={{ fontSize: '1.2rem' }}>📄</span>}
+                    {icon && <span style={{ color: 'var(--color-primary)' }}>{icon}</span>}
                     {title}
                 </div>
                 {isOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}

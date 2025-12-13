@@ -1,0 +1,167 @@
+/* NewArrivals.css */
+.new-arrivals-section {
+    padding: 6rem 0;
+    background-color: var(--color-bg-body);
+}
+
+.new-arrivals-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 3rem;
+    border-bottom: 2px solid var(--color-border);
+    padding-bottom: 1rem;
+}
+
+.new-arrivals-title-group h2 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--color-text-main);
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.02em;
+    font-family: var(--font-heading);
+}
+
+.new-arrivals-subtitle {
+    color: var(--color-text-light);
+    font-size: 1.1rem;
+}
+
+.view-all-btn {
+    display: flex;
+    align-items: center;
+    color: var(--color-text-main);
+    font-weight: 600;
+    text-decoration: none;
+    padding-bottom: 2px;
+    transition: color 0.2s;
+}
+
+.view-all-btn:hover {
+    color: var(--color-primary);
+}
+
+.new-arrivals-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 2.5rem;
+}
+
+.new-arrival-card {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.new-arrival-card:hover {
+    transform: translateY(-8px);
+}
+
+.new-arrival-image-wrapper {
+    position: relative;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+    aspect-ratio: 1 / 1.2;
+    background-color: #f3f4f6;
+    box-shadow: var(--shadow-sm);
+}
+
+.new-arrival-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.new-arrival-card:hover .new-arrival-image {
+    transform: scale(1.08);
+}
+
+.new-badge {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    background-color: var(--color-primary);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    z-index: 2;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.quick-add-btn {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    background-color: white;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+    opacity: 0;
+    transform: translateY(10px);
+}
+
+.new-arrival-card:hover .quick-add-btn {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.quick-add-btn:hover {
+    background-color: var(--color-primary);
+    color: white;
+    transform: scale(1.1);
+}
+
+.quick-add-btn:hover svg {
+    color: white !important;
+}
+
+.new-arrival-info h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--color-text-main);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.new-arrival-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.new-arrival-category {
+    font-size: 0.9rem;
+    color: var(--color-text-light);
+    text-transform: capitalize;
+}
+
+.new-arrival-price {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--color-text-main);
+}
+
+@media (max-width: 768px) {
+    .new-arrivals-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .new-arrivals-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+}

@@ -1,0 +1,146 @@
+/* Footer.css */
+.footer {
+    background-color: var(--color-primary);
+    /* Matches SVG Wave */
+    color: white;
+    padding: 4rem 0 2rem;
+    margin-top: auto;
+    font-size: 0.875rem;
+    border-top: 1px solid var(--color-secondary);
+    /* Subtle top border */
+}
+
+.footer-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 2rem;
+    padding: 0 1rem;
+}
+
+.footer-column h3 {
+    font-size: 0.8rem;
+    color: #878787;
+    margin-bottom: 1.2rem;
+    text-transform: uppercase;
+    font-weight: 400;
+    letter-spacing: 0.5px;
+}
+
+.footer-links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.footer-link {
+    color: white;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.85rem;
+    transition: color 0.2s;
+}
+
+.footer-link:hover {
+    color: var(--color-secondary);
+    /* Flipkart Blue hover */
+    text-decoration: underline;
+}
+
+.footer-address {
+    font-size: 0.75rem;
+    line-height: 1.6;
+    border-left: 1px solid #454d5e;
+    padding-left: 1rem;
+    color: #e0e0e0;
+}
+
+.footer-bottom {
+    border-top: 1px solid #454d5e;
+    margin-top: 3rem;
+    padding-top: 2rem;
+    text-align: center;
+    color: white;
+    font-size: 0.9rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+}
+
+.footer-bottom-links {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.footer-bottom-links span {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.footer-bottom-links span:hover {
+    color: var(--color-secondary);
+}
+
+/* Newsletter Enhancement (if added back) */
+.newsletter-form {
+    display: flex;
+    gap: 0;
+    margin-top: 1rem;
+    background: white;
+    border-radius: 4px;
+    overflow: hidden;
+    max-width: 300px;
+}
+
+.newsletter-input {
+    padding: 0.6rem 1rem;
+    border: none;
+    font-size: 0.9rem;
+    flex: 1;
+    outline: none;
+    color: var(--color-text-main);
+}
+
+.newsletter-btn {
+    background-color: var(--color-primary);
+    color: white;
+    border: none;
+    padding: 0 1.2rem;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.2s;
+}
+
+.newsletter-btn:hover {
+    background-color: var(--color-primary-dark);
+}
+
+@media (max-width: 768px) {
+    .footer-container {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+
+    .footer-address {
+        border-left: none;
+        padding-left: 0;
+    }
+
+    .footer-bottom {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+    }
+
+    .footer-bottom-links {
+        justify-content: center;
+        gap: 1rem;
+    }
+}

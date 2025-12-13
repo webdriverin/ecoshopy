@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import Button from '../../components/UI/Button';
-import { Save, Plus, Trash2, Search, Upload, X } from 'lucide-react';
+import { Save, Plus, Trash2, Search, Upload, X, ArrowLeft, Info, Layers, Image as ImageIcon, Tag, Truck, List } from 'lucide-react';
 import FirebaseService from '../../services/FirebaseService';
 import { useNavigate, useParams } from 'react-router-dom';
+import VariantManager from './VariantManager';
 
 const ProductAddForm = ({ type: initialType }) => {
     const navigate = useNavigate();
@@ -47,7 +48,7 @@ const ProductAddForm = ({ type: initialType }) => {
     const [sectionInput, setSectionInput] = useState({ title: '', content: '' });
 
     // Multiple Count State
-    const [variants, setVariants] = useState([{ name: '', price: '', stock: '' }]);
+    const [variants, setVariants] = useState([]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -80,12 +81,11 @@ const ProductAddForm = ({ type: initialType }) => {
                             images: product.images || [],
                             features: product.features || [],
                             attributes: product.attributes || [],
-                            attributes: product.attributes || [],
                             shippingInfo: product.shippingInfo || '',
-                            customSections: product.customSections || []
+                            customSections: product.customSections || [],
+                            offerText: product.offerText || ''
                         });
 
-                        // Populate Gallery with Colors
                         const images = product.images && product.images.length > 0
                             ? product.images
                             : (product.image ? [product.image] : []);
@@ -111,6 +111,13 @@ const ProductAddForm = ({ type: initialType }) => {
         };
         fetchData();
     }, [id, initialType, isEditing]);
+
+    // Sync currentType with initialType when not editing
+    useEffect(() => {
+        if (!isEditing && initialType) {
+            setCurrentType(initialType);
+        }
+    }, [initialType, isEditing]);
 
 
     const handleChange = (e) => {
@@ -208,27 +215,18 @@ const ProductAddForm = ({ type: initialType }) => {
         return colorAttr.value.split(',').map(c => c.trim()).filter(Boolean);
     };
 
-    // Multiple Count Logic
-    const handleVariantChange = (index, field, value) => {
-        const newVariants = [...variants];
-        newVariants[index][field] = value;
-        setVariants(newVariants);
-    };
-
-    const addVariant = () => {
-        setVariants([...variants, { name: '', price: '', stock: '' }]);
-    };
-
-    const removeVariant = (index) => {
-        const newVariants = variants.filter((_, i) => i !== index);
-        setVariants(newVariants);
-    };
-
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
 
         try {
+            // Validation for Multiple Count
+            if (currentType === 'Multiple Count' && variants.length === 0) {
+                alert("Please add at least one variant for Multiple Count product.");
+                setLoading(false);
+                return;
+            }
+
             // Upload Images
             const finalImages = [];
             const imageColors = {};
@@ -246,10 +244,27 @@ const ProductAddForm = ({ type: initialType }) => {
 
             const finalCategory = formData.newCategory || formData.category;
 
+            // Determine price range or base price for Multiple Count
+            let finalPrice = formData.price;
+            let finalMrp = formData.mrp;
+            let finalStock = formData.stock;
+
+            if (currentType === 'Multiple Count') {
+                // Use the lowest price variant as the base price
+                const minPriceVariant = variants.reduce((min, v) => parseFloat(v.price) < parseFloat(min.price) ? v : min, variants[0]);
+                finalPrice = minPriceVariant.price;
+                finalMrp = minPriceVariant.mrp || '';
+                // Sum stock
+                finalStock = variants.reduce((sum, v) => sum + parseInt(v.stock || 0), 0);
+            }
+
             const productData = {
                 ...formData,
                 category: finalCategory,
                 type: currentType ? currentType.toLowerCase() : 'standard',
+                price: finalPrice,
+                mrp: finalMrp,
+                stock: finalStock,
                 images: finalImages,
                 image: finalImages[0] || '', // Backward compatibility
                 imageColors: imageColors, // Save color mapping
@@ -293,414 +308,438 @@ const ProductAddForm = ({ type: initialType }) => {
     const availableColors = getAvailableColors();
 
     return (
-        <div style={{ maxWidth: '900px', margin: '0 auto', paddingBottom: '2rem' }}>
-            <h1 style={{ marginBottom: '2rem' }}>{isEditing ? 'Edit' : 'Add'} {currentType || 'Standard'} Product</h1>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', paddingBottom: '4rem' }}>
+            {/* Header */}
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '2rem' }}>
+                <Button variant="secondary" onClick={() => navigate('/admin/products')} style={{ marginRight: '1rem' }}>
+                    <ArrowLeft size={20} />
+                </Button>
+                <div>
+                    <h1 style={{ fontSize: '1.8rem', fontWeight: 'bold', color: 'var(--color-text-main)' }}>
+                        {isEditing ? 'Edit' : 'Add New'} {currentType} Product
+                    </h1>
+                    <p style={{ color: 'var(--color-text-light)' }}>
+                        Fill in the details below to {isEditing ? 'update the' : 'create a new'} product.
+                    </p>
+                </div>
+            </div>
 
-            <div style={{ backgroundColor: 'white', padding: '2rem', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)' }}>
-                <form onSubmit={handleSubmit} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+            <form onSubmit={handleSubmit} style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '2rem' }}>
 
-                    {/* Basic Info */}
-                    <div style={{ gridColumn: '1 / -1' }}>
-                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Product Name</label>
-                        <input
-                            type="text"
-                            name="name"
-                            value={formData.name}
-                            onChange={handleChange}
-                            required
-                            style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}
-                        />
-                    </div>
+                {/* Left Column: Main Content */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
 
-                    {/* Category Selection */}
-                    <div>
-                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Category</label>
-                        <div style={{ display: 'flex', gap: '0.5rem' }}>
-                            <select
-                                name="category"
-                                value={formData.category}
-                                onChange={handleChange}
-                                required={!formData.newCategory}
-                                style={{ flex: 1, padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}
-                            >
-                                <option value="">Select Category</option>
-                                {categories.map(cat => (
-                                    <option key={cat.id} value={cat.name}>{cat.name}</option>
-                                ))}
+                    {/* Basic Information Card */}
+                    <div style={{ backgroundColor: 'white', padding: '2rem', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)', border: '1px solid var(--color-border)' }}>
+                        <h2 style={{ fontSize: '1.2rem', fontWeight: '600', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <Info size={20} color="var(--color-primary)" /> Basic Information
+                        </h2>
 
-                            </select>
-                            <input
-                                type="text"
-                                name="newCategory"
-                                placeholder="Or type new..."
-                                value={formData.newCategory || ''}
-                                onChange={handleChange}
-                                style={{ flex: 1, padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}
-                            />
-                        </div>
-                    </div>
-
-                    {/* Price & Stock */}
-                    {currentType !== 'Multiple Count' && (
-                        <>
+                        <div style={{ display: 'grid', gap: '1.5rem' }}>
                             <div>
-                                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>M.R.P. (₹)</label>
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Product Name</label>
                                 <input
-                                    type="number"
-                                    name="mrp"
-                                    value={formData.mrp || ''}
-                                    onChange={handleChange}
-                                    min="0"
-                                    placeholder="e.g. 1000"
-                                    style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}
-                                />
-                                <small style={{ color: 'var(--color-text-light)' }}>Leave empty if same as selling price.</small>
-                            </div>
-
-                            <div>
-                                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Selling Price (₹)</label>
-                                <input
-                                    type="number"
-                                    name="price"
-                                    value={formData.price}
+                                    type="text"
+                                    name="name"
+                                    value={formData.name}
                                     onChange={handleChange}
                                     required
-                                    min="0"
+                                    placeholder="e.g. Premium Bamboo Toothbrush"
                                     style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}
                                 />
                             </div>
 
-                            <div>
-                                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Stock</label>
-                                <input
-                                    type="number"
-                                    name="stock"
-                                    value={formData.stock}
-                                    onChange={handleChange}
-                                    required
-                                    min="0"
-                                    style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}
-                                />
-                            </div>
-                        </>
-                    )}
-
-                    {/* Attributes Section */}
-                    <div style={{ gridColumn: '1 / -1' }}>
-                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Product Attributes (Color, Size, Material, etc.)</label>
-                        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
-                            <input
-                                type="text"
-                                placeholder="Name (e.g. Color)"
-                                value={attributeInput.key}
-                                onChange={(e) => setAttributeInput({ ...attributeInput, key: e.target.value })}
-                                style={{ flex: 1, padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}
-                            />
-                            <input
-                                type="text"
-                                placeholder="Value (e.g. Red, Blue)"
-                                value={attributeInput.value}
-                                onChange={(e) => setAttributeInput({ ...attributeInput, value: e.target.value })}
-                                onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addAttribute())}
-                                style={{ flex: 2, padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}
-                            />
-                            <Button type="button" variant="secondary" onClick={addAttribute}>
-                                <Plus size={20} />
-                            </Button>
-                        </div>
-
-                        {formData.attributes.length > 0 && (
-                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1rem' }}>
-                                {formData.attributes.map((attr, index) => (
-                                    <div key={index} style={{
-                                        display: 'flex', alignItems: 'center', gap: '0.5rem',
-                                        padding: '0.5rem 0.75rem', backgroundColor: '#F3F4F6',
-                                        borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)',
-                                        fontSize: '0.875rem'
-                                    }}>
-                                        <span style={{ fontWeight: '600' }}>{attr.key}:</span>
-                                        <span>{attr.value}</span>
-                                        <button type="button" onClick={() => removeAttribute(index)} style={{ color: 'var(--color-error)', display: 'flex', cursor: 'pointer' }}>
-                                            <X size={14} />
-                                        </button>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>SKU (Stock Keeping Unit)</label>
+                                    <input
+                                        type="text"
+                                        name="sku"
+                                        value={formData.sku}
+                                        onChange={handleChange}
+                                        placeholder="e.g. PROD-001"
+                                        style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}
+                                    />
+                                </div>
+                                {currentType !== 'Multiple Count' && (
+                                    <div>
+                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Stock Quantity</label>
+                                        <input
+                                            type="number"
+                                            name="stock"
+                                            value={formData.stock}
+                                            onChange={handleChange}
+                                            required
+                                            min="0"
+                                            placeholder="0"
+                                            style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}
+                                        />
                                     </div>
-                                ))}
-                            </div>
-                        )}
-                        <p style={{ fontSize: '0.75rem', color: 'var(--color-text-light)' }}>
-                            Tip: For "Color", enter values separated by commas (e.g. "Red, Blue") to enable image color assignment.
-                        </p>
-                    </div>
-
-                    {/* Image Upload (Max 5) */}
-                    <div style={{ gridColumn: '1 / -1' }}>
-                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Product Images (Max 5)</label>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-
-                            {/* Previews */}
-                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
-                                {galleryItems.map((item, index) => (
-                                    <div key={index} style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', width: '120px' }}>
-                                        <div style={{ position: 'relative', width: '120px', height: '120px' }}>
-                                            <img src={item.preview} alt={`Preview ${index}`} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }} />
-                                            <button
-                                                type="button"
-                                                onClick={() => removeGalleryItem(index)}
-                                                style={{
-                                                    position: 'absolute', top: '-5px', right: '-5px',
-                                                    backgroundColor: 'var(--color-error)', color: 'white',
-                                                    borderRadius: '50%', width: '20px', height: '20px',
-                                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                    border: 'none', cursor: 'pointer'
-                                                }}
-                                            >
-                                                <X size={12} />
-                                            </button>
-                                        </div>
-
-                                        {/* Color Assignment */}
-                                        {availableColors.length > 0 && (
-                                            <select
-                                                value={item.color || ''}
-                                                onChange={(e) => handleImageColorChange(index, e.target.value)}
-                                                style={{ width: '100%', padding: '0.25rem', fontSize: '0.75rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)' }}
-                                            >
-                                                <option value="">No Color</option>
-                                                {availableColors.map(c => (
-                                                    <option key={c} value={c}>{c}</option>
-                                                ))}
-                                            </select>
-                                        )}
-                                    </div>
-                                ))}
-
-                                {galleryItems.length < 5 && (
-                                    <label style={{
-                                        width: '120px', height: '120px',
-                                        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                                        border: '1px dashed var(--color-border)', borderRadius: 'var(--radius-md)',
-                                        cursor: 'pointer', backgroundColor: '#F9FAFB'
-                                    }}>
-                                        <Upload size={24} color="var(--color-text-light)" />
-                                        <span style={{ fontSize: '0.75rem', color: 'var(--color-text-light)', marginTop: '0.25rem' }}>Add Image</span>
-                                        <input type="file" accept="image/*" onChange={handleImageChangeRevised} style={{ display: 'none' }} multiple />
-                                    </label>
                                 )}
                             </div>
 
-                            {/* URL Input */}
-                            {galleryItems.length < 5 && (
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Description</label>
+                                <textarea
+                                    name="description"
+                                    value={formData.description}
+                                    onChange={handleChange}
+                                    rows="5"
+                                    required
+                                    placeholder="Detailed description of the product..."
+                                    style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', fontFamily: 'inherit' }}
+                                ></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Pricing Card (Standard Only) */}
+                    {currentType !== 'Multiple Count' && (
+                        <div style={{ backgroundColor: 'white', padding: '2rem', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)', border: '1px solid var(--color-border)' }}>
+                            <h2 style={{ fontSize: '1.2rem', fontWeight: '600', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <Tag size={20} color="var(--color-primary)" /> Pricing
+                            </h2>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>M.R.P. (₹)</label>
+                                    <input
+                                        type="number"
+                                        name="mrp"
+                                        value={formData.mrp || ''}
+                                        onChange={handleChange}
+                                        min="0"
+                                        placeholder="0.00"
+                                        style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}
+                                    />
+                                </div>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Selling Price (₹)</label>
+                                    <input
+                                        type="number"
+                                        name="price"
+                                        value={formData.price}
+                                        onChange={handleChange}
+                                        required
+                                        min="0"
+                                        placeholder="0.00"
+                                        style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}
+                                    />
+                                </div>
+                                <div style={{ gridColumn: '1 / -1' }}>
+                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Offer Text (Optional)</label>
                                     <input
                                         type="text"
-                                        placeholder="Or enter image URL..."
-                                        value={imageUrlInput}
-                                        onChange={(e) => setImageUrlInput(e.target.value)}
-                                        style={{ flex: 1, padding: '0.5rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}
+                                        name="offerText"
+                                        value={formData.offerText || ''}
+                                        onChange={handleChange}
+                                        placeholder="e.g. 20% OFF, Festive Offer"
+                                        style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}
                                     />
-                                    <Button type="button" variant="secondary" size="sm" onClick={addImageUrlRevised} disabled={!imageUrlInput}>
-                                        Add URL
-                                    </Button>
+                                    <p style={{ fontSize: '0.8rem', color: 'var(--color-text-light)', marginTop: '0.25rem' }}>
+                                        If left empty, no discount badge will be shown.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Variants Card (Multiple Count Only) */}
+                    {currentType === 'Multiple Count' && (
+                        <div style={{ backgroundColor: 'white', padding: '2rem', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)', border: '1px solid var(--color-border)' }}>
+                            <h2 style={{ fontSize: '1.2rem', fontWeight: '600', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <Layers size={20} color="var(--color-primary)" /> Variants
+                            </h2>
+                            <p style={{ color: 'var(--color-text-light)', marginBottom: '1.5rem' }}>
+                                Manage different packs or sizes for this product.
+                            </p>
+                            <VariantManager variants={variants} onChange={setVariants} />
+                        </div>
+                    )}
+
+                    {/* Media Card */}
+                    <div style={{ backgroundColor: 'white', padding: '2rem', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)', border: '1px solid var(--color-border)' }}>
+                        <h2 style={{ fontSize: '1.2rem', fontWeight: '600', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <ImageIcon size={20} color="var(--color-primary)" /> Media
+                        </h2>
+
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.5rem' }}>
+                            {galleryItems.map((item, index) => (
+                                <div key={index} style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', width: '120px' }}>
+                                    <div style={{ position: 'relative', width: '120px', height: '120px' }}>
+                                        <img src={item.preview} alt={`Preview ${index}`} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }} />
+                                        <button
+                                            type="button"
+                                            onClick={() => removeGalleryItem(index)}
+                                            style={{
+                                                position: 'absolute', top: '-8px', right: '-8px',
+                                                backgroundColor: 'white', color: 'var(--color-error)',
+                                                borderRadius: '50%', width: '24px', height: '24px',
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                border: '1px solid var(--color-border)', cursor: 'pointer',
+                                                boxShadow: 'var(--shadow-sm)'
+                                            }}
+                                        >
+                                            <X size={14} />
+                                        </button>
+                                    </div>
+
+                                    {/* Color Assignment */}
+                                    {availableColors.length > 0 && (
+                                        <select
+                                            value={item.color || ''}
+                                            onChange={(e) => handleImageColorChange(index, e.target.value)}
+                                            style={{ width: '100%', padding: '0.25rem', fontSize: '0.75rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)' }}
+                                        >
+                                            <option value="">No Color</option>
+                                            {availableColors.map(c => (
+                                                <option key={c} value={c}>{c}</option>
+                                            ))}
+                                        </select>
+                                    )}
+                                </div>
+                            ))}
+
+                            {galleryItems.length < 5 && (
+                                <label style={{
+                                    width: '120px', height: '120px',
+                                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                                    border: '2px dashed var(--color-border)', borderRadius: 'var(--radius-md)',
+                                    cursor: 'pointer', backgroundColor: '#F9FAFB', transition: 'all 0.2s'
+                                }}
+                                    onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--color-primary)'}
+                                    onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--color-border)'}
+                                >
+                                    <Upload size={24} color="var(--color-text-light)" />
+                                    <span style={{ fontSize: '0.75rem', color: 'var(--color-text-light)', marginTop: '0.5rem', fontWeight: '500' }}>Upload Image</span>
+                                    <input type="file" accept="image/*" onChange={handleImageChangeRevised} style={{ display: 'none' }} multiple />
+                                </label>
+                            )}
+                        </div>
+
+                        {galleryItems.length < 5 && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <input
+                                    type="text"
+                                    placeholder="Or paste image URL..."
+                                    value={imageUrlInput}
+                                    onChange={(e) => setImageUrlInput(e.target.value)}
+                                    style={{ flex: 1, padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}
+                                />
+                                <Button type="button" variant="secondary" onClick={addImageUrlRevised} disabled={!imageUrlInput}>
+                                    Add URL
+                                </Button>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Attributes & Features */}
+                    <div style={{ backgroundColor: 'white', padding: '2rem', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)', border: '1px solid var(--color-border)' }}>
+                        <h2 style={{ fontSize: '1.2rem', fontWeight: '600', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <List size={20} color="var(--color-primary)" /> Specifications
+                        </h2>
+
+                        <div style={{ marginBottom: '2rem' }}>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Key Features</label>
+                            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+                                <input
+                                    type="text"
+                                    placeholder="Add a feature (e.g., '100% Natural')"
+                                    value={featureInput}
+                                    onChange={(e) => setFeatureInput(e.target.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addFeature())}
+                                    style={{ flex: 1, padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}
+                                />
+                                <Button type="button" variant="secondary" onClick={addFeature}>
+                                    <Plus size={20} />
+                                </Button>
+                            </div>
+                            <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                {formData.keyFeatures && formData.keyFeatures.map((feature, index) => (
+                                    <li key={index} style={{
+                                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                        padding: '0.75rem', backgroundColor: '#F9FAFB', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)'
+                                    }}>
+                                        <span>{feature}</span>
+                                        <button type="button" onClick={() => removeFeature(index)} style={{ color: 'var(--color-error)', cursor: 'pointer', background: 'none', border: 'none' }}>
+                                            <Trash2 size={16} />
+                                        </button>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+
+                        <div>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Attributes (Color, Size, etc.)</label>
+                            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+                                <input
+                                    type="text"
+                                    placeholder="Name"
+                                    value={attributeInput.key}
+                                    onChange={(e) => setAttributeInput({ ...attributeInput, key: e.target.value })}
+                                    style={{ flex: 1, padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}
+                                />
+                                <input
+                                    type="text"
+                                    placeholder="Value"
+                                    value={attributeInput.value}
+                                    onChange={(e) => setAttributeInput({ ...attributeInput, value: e.target.value })}
+                                    onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addAttribute())}
+                                    style={{ flex: 2, padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}
+                                />
+                                <Button type="button" variant="secondary" onClick={addAttribute}>
+                                    <Plus size={20} />
+                                </Button>
+                            </div>
+                            {formData.attributes.length > 0 && (
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                                    {formData.attributes.map((attr, index) => (
+                                        <div key={index} style={{
+                                            display: 'flex', alignItems: 'center', gap: '0.5rem',
+                                            padding: '0.5rem 0.75rem', backgroundColor: '#F3F4F6',
+                                            borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)',
+                                            fontSize: '0.875rem'
+                                        }}>
+                                            <span style={{ fontWeight: '600' }}>{attr.key}:</span>
+                                            <span>{attr.value}</span>
+                                            <button type="button" onClick={() => removeAttribute(index)} style={{ color: 'var(--color-error)', display: 'flex', cursor: 'pointer', background: 'none', border: 'none' }}>
+                                                <X size={14} />
+                                            </button>
+                                        </div>
+                                    ))}
                                 </div>
                             )}
                         </div>
                     </div>
 
-                    {/* Key Features */}
-                    <div style={{ gridColumn: '1 / -1' }}>
-                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Key Features (Displayed in Product Info)</label>
-                        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
-                            <input
-                                type="text"
-                                placeholder="Add a feature (e.g., '100% Natural')"
-                                value={featureInput}
-                                onChange={(e) => setFeatureInput(e.target.value)}
-                                onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addFeature())}
-                                style={{ flex: 1, padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}
-                            />
-                            <Button type="button" variant="secondary" onClick={addFeature}>
-                                <Plus size={20} />
-                            </Button>
+                    {/* Custom Sections */}
+                    <div style={{ backgroundColor: 'white', padding: '2rem', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)', border: '1px solid var(--color-border)' }}>
+                        <h2 style={{ fontSize: '1.2rem', fontWeight: '600', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <List size={20} color="var(--color-primary)" /> Additional Info
+                        </h2>
+
+                        <div style={{ marginBottom: '1.5rem' }}>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Shipping Information</label>
+                            <textarea
+                                name="shippingInfo"
+                                value={formData.shippingInfo || ''}
+                                onChange={handleChange}
+                                rows="3"
+                                placeholder="Enter shipping details..."
+                                style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', fontFamily: 'inherit' }}
+                            ></textarea>
                         </div>
 
-                        <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                            {formData.keyFeatures && formData.keyFeatures.map((feature, index) => (
-                                <li key={index} style={{
-                                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                                    padding: '0.75rem', backgroundColor: '#F9FAFB', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)'
-                                }}>
-                                    <span>{feature}</span>
-                                    <button type="button" onClick={() => removeFeature(index)} style={{ color: 'var(--color-error)', cursor: 'pointer' }}>
-                                        <Trash2 size={16} />
-                                    </button>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-
-                    {/* Type Specific Fields */}
-
-                    {/* MULTIPLE COUNT PRODUCTS */}
-                    {currentType === 'Multiple Count' && (
-                        <div style={{ gridColumn: '1 / -1', padding: '1.5rem', backgroundColor: '#F9FAFB', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                                <h3 style={{ fontSize: '1.1rem' }}>Product Variants</h3>
-                                <Button type="button" variant="secondary" size="sm" onClick={addVariant}>
-                                    <Plus size={16} style={{ marginRight: '0.25rem' }} /> Add Variant
+                        <div>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Custom Sections</label>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1rem', padding: '1rem', backgroundColor: '#F9FAFB', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}>
+                                <input
+                                    type="text"
+                                    placeholder="Section Title (e.g. Warranty)"
+                                    value={sectionInput.title}
+                                    onChange={(e) => setSectionInput({ ...sectionInput, title: e.target.value })}
+                                    style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}
+                                />
+                                <textarea
+                                    placeholder="Section Content"
+                                    value={sectionInput.content}
+                                    onChange={(e) => setSectionInput({ ...sectionInput, content: e.target.value })}
+                                    rows="3"
+                                    style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', fontFamily: 'inherit' }}
+                                ></textarea>
+                                <Button type="button" variant="secondary" onClick={addSection} disabled={!sectionInput.title || !sectionInput.content}>
+                                    <Plus size={20} style={{ marginRight: '0.5rem' }} /> Add Section
                                 </Button>
                             </div>
 
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                                {variants.map((variant, index) => (
-                                    <div key={index} style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr auto', gap: '1rem', alignItems: 'end' }}>
-                                        <div>
-                                            <label style={{ fontSize: '0.75rem', fontWeight: '500', marginBottom: '0.25rem', display: 'block' }}>Variant Name (e.g. Pack of 2)</label>
-                                            <input
-                                                type="text"
-                                                value={variant.name}
-                                                onChange={(e) => handleVariantChange(index, 'name', e.target.value)}
-                                                placeholder="Pack of 2"
-                                                required
-                                                style={{ width: '100%', padding: '0.5rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)' }}
-                                            />
+                            {formData.customSections.length > 0 && (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                    {formData.customSections.map((section, index) => (
+                                        <div key={index} style={{
+                                            padding: '1rem', backgroundColor: 'white',
+                                            borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)',
+                                            position: 'relative'
+                                        }}>
+                                            <div style={{ fontWeight: '600', marginBottom: '0.5rem' }}>{section.title}</div>
+                                            <div style={{ fontSize: '0.9rem', color: 'var(--color-text-light)', whiteSpace: 'pre-line' }}>{section.content}</div>
+                                            <button
+                                                type="button"
+                                                onClick={() => removeSection(index)}
+                                                style={{
+                                                    position: 'absolute', top: '1rem', right: '1rem',
+                                                    color: 'var(--color-error)', cursor: 'pointer',
+                                                    background: 'none', border: 'none'
+                                                }}
+                                            >
+                                                <Trash2 size={18} />
+                                            </button>
                                         </div>
-                                        <div>
-                                            <label style={{ fontSize: '0.75rem', fontWeight: '500', marginBottom: '0.25rem', display: 'block' }}>Price</label>
-                                            <input
-                                                type="number"
-                                                value={variant.price}
-                                                onChange={(e) => handleVariantChange(index, 'price', e.target.value)}
-                                                placeholder="0.00"
-                                                required
-                                                style={{ width: '100%', padding: '0.5rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)' }}
-                                            />
-                                        </div>
-                                        <div>
-                                            <label style={{ fontSize: '0.75rem', fontWeight: '500', marginBottom: '0.25rem', display: 'block' }}>Stock</label>
-                                            <input
-                                                type="number"
-                                                value={variant.stock}
-                                                onChange={(e) => handleVariantChange(index, 'stock', e.target.value)}
-                                                placeholder="0"
-                                                required
-                                                style={{ width: '100%', padding: '0.5rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)' }}
-                                            />
-                                        </div>
-                                        <button
-                                            type="button"
-                                            onClick={() => removeVariant(index)}
-                                            style={{ color: 'var(--color-error)', padding: '0.5rem', marginBottom: '2px' }}
-                                            disabled={variants.length === 1}
-                                        >
-                                            <Trash2 size={18} />
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
-                    )}
-
-                    {/* Description */}
-                    <div style={{ gridColumn: '1 / -1' }}>
-                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Description</label>
-                        <textarea
-                            name="description"
-                            value={formData.description}
-                            onChange={handleChange}
-                            rows="4"
-                            required
-                            style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', fontFamily: 'inherit' }}
-                        ></textarea>
                     </div>
 
-                    {/* Shipping Info */}
-                    <div style={{ gridColumn: '1 / -1' }}>
-                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Shipping Information</label>
-                        <textarea
-                            name="shippingInfo"
-                            value={formData.shippingInfo || ''}
-                            onChange={handleChange}
-                            rows="3"
-                            placeholder="Enter shipping details (e.g., 'Free shipping on orders over ₹500. Delivery in 3-5 days.')"
-                            style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', fontFamily: 'inherit' }}
-                        ></textarea>
-                    </div>
+                </div>
 
-                    {/* Custom Sections */}
-                    <div style={{ gridColumn: '1 / -1' }}>
-                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Custom Sections (e.g. Warranty, Care Instructions)</label>
+                {/* Right Column: Sidebar */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
 
-                        {/* Input Area */}
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1rem', padding: '1rem', backgroundColor: '#F9FAFB', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}>
+                    {/* Organization Card */}
+                    <div style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)', border: '1px solid var(--color-border)' }}>
+                        <h3 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '1rem' }}>Organization</h3>
+
+                        <div style={{ marginBottom: '1.5rem' }}>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500', fontSize: '0.9rem' }}>Category</label>
+                            <select
+                                name="category"
+                                value={formData.category}
+                                onChange={handleChange}
+                                required={!formData.newCategory}
+                                style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', marginBottom: '0.5rem' }}
+                            >
+                                <option value="">Select Category</option>
+                                {categories.map(cat => (
+                                    <option key={cat.id} value={cat.name}>{cat.name}</option>
+                                ))}
+                            </select>
                             <input
                                 type="text"
-                                placeholder="Section Title (e.g. Warranty)"
-                                value={sectionInput.title}
-                                onChange={(e) => setSectionInput({ ...sectionInput, title: e.target.value })}
+                                name="newCategory"
+                                placeholder="Or create new..."
+                                value={formData.newCategory || ''}
+                                onChange={handleChange}
                                 style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}
                             />
-                            <textarea
-                                placeholder="Section Content"
-                                value={sectionInput.content}
-                                onChange={(e) => setSectionInput({ ...sectionInput, content: e.target.value })}
-                                rows="3"
-                                style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', fontFamily: 'inherit' }}
-                            ></textarea>
-                            <Button type="button" variant="secondary" onClick={addSection} disabled={!sectionInput.title || !sectionInput.content}>
-                                <Plus size={20} style={{ marginRight: '0.5rem' }} /> Add Section
-                            </Button>
                         </div>
 
-                        {/* List of Sections */}
-                        {formData.customSections.length > 0 && (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                                {formData.customSections.map((section, index) => (
-                                    <div key={index} style={{
-                                        padding: '1rem', backgroundColor: 'white',
-                                        borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)',
-                                        position: 'relative'
-                                    }}>
-                                        <div style={{ fontWeight: '600', marginBottom: '0.5rem' }}>{section.title}</div>
-                                        <div style={{ fontSize: '0.9rem', color: 'var(--color-text-light)', whiteSpace: 'pre-line' }}>{section.content}</div>
-                                        <button
-                                            type="button"
-                                            onClick={() => removeSection(index)}
-                                            style={{
-                                                position: 'absolute', top: '1rem', right: '1rem',
-                                                color: 'var(--color-error)', cursor: 'pointer',
-                                                background: 'none', border: 'none'
-                                            }}
-                                        >
-                                            <Trash2 size={18} />
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <input
+                                type="checkbox"
+                                name="featured"
+                                checked={formData.featured}
+                                onChange={handleChange}
+                                id="featured"
+                                style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+                            />
+                            <label htmlFor="featured" style={{ cursor: 'pointer', fontSize: '0.9rem' }}>Featured Product</label>
+                        </div>
                     </div>
 
-                    {/* Featured Checkbox */}
-                    <div style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center' }}>
-                        <input
-                            type="checkbox"
-                            name="featured"
-                            checked={formData.featured}
-                            onChange={handleChange}
-                            id="featured"
-                            style={{ width: '18px', height: '18px', marginRight: '0.5rem', cursor: 'pointer' }}
-                        />
-                        <label htmlFor="featured" style={{ cursor: 'pointer', fontWeight: '500' }}>Mark as Featured (Show on Home Page)</label>
+                    {/* Actions Card */}
+                    <div style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)', border: '1px solid var(--color-border)' }}>
+                        <h3 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '1rem' }}>Actions</h3>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                            <Button variant="primary" type="submit" disabled={loading} style={{ width: '100%' }}>
+                                <Save size={20} style={{ marginRight: '0.5rem' }} /> {loading ? 'Saving...' : 'Save Product'}
+                            </Button>
+                            <Button variant="secondary" type="button" onClick={() => navigate('/admin/products')} style={{ width: '100%' }}>
+                                Cancel
+                            </Button>
+                        </div>
                     </div>
 
-                    {/* Submit Button */}
-                    <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' }}>
-                        <Button variant="primary" type="submit" disabled={loading} style={{ minWidth: '150px' }}>
-                            <Save size={20} style={{ marginRight: '0.5rem' }} /> {loading ? 'Saving...' : 'Save Product'}
-                        </Button>
-                    </div>
-
-                </form>
-            </div>
+                </div>
+            </form>
         </div>
     );
 };

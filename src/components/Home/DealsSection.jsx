@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import { ChevronLeft, ChevronRight, Clock } from 'lucide-react';
 import FirebaseService from '../../services/FirebaseService';
 import './DealsSection.css';
 
 const DealsSection = () => {
     const [deals, setDeals] = useState([]);
     const [timeLeft, setTimeLeft] = useState({ hours: 12, minutes: 0, seconds: 0 });
+    const scrollRef = useRef(null);
 
     useEffect(() => {
         const fetchDeals = async () => {
@@ -31,6 +33,18 @@ const DealsSection = () => {
         return () => clearInterval(timer);
     }, []);
 
+    const scroll = (direction) => {
+        if (scrollRef.current) {
+            const { current } = scrollRef;
+            const scrollAmount = 300;
+            if (direction === 'left') {
+                current.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+            } else {
+                current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+            }
+        }
+    };
+
     if (deals.length === 0) return null;
 
     return (
@@ -40,26 +54,44 @@ const DealsSection = () => {
                     <div className="deals-title-wrapper">
                         <h2 className="deals-title">Deals of the Day</h2>
                         <div className="deals-timer">
-                            <span>Ends in</span>
-                            <span className="timer-box">{String(timeLeft.hours).padStart(2, '0')}</span> :
-                            <span className="timer-box">{String(timeLeft.minutes).padStart(2, '0')}</span> :
-                            <span className="timer-box">{String(timeLeft.seconds).padStart(2, '0')}</span>
+                            <Clock size={16} className="timer-icon" />
+                            <span className="timer-text">Ends in</span>
+                            <div className="timer-box-wrapper">
+                                <span className="timer-box">{String(timeLeft.hours).padStart(2, '0')}</span>
+                                <span className="timer-separator">:</span>
+                                <span className="timer-box">{String(timeLeft.minutes).padStart(2, '0')}</span>
+                                <span className="timer-separator">:</span>
+                                <span className="timer-box">{String(timeLeft.seconds).padStart(2, '0')}</span>
+                            </div>
                         </div>
                     </div>
-                    <Link to="/shop?sort=deals" className="view-all-btn">VIEW ALL</Link>
+                    <div className="deals-actions">
+                        <Link to="/shop?sort=deals" className="view-all-btn">VIEW ALL</Link>
+                        <div className="deals-nav-buttons">
+                            <button className="deals-nav-btn" onClick={() => scroll('left')} aria-label="Scroll Left">
+                                <ChevronLeft size={20} />
+                            </button>
+                            <button className="deals-nav-btn" onClick={() => scroll('right')} aria-label="Scroll Right">
+                                <ChevronRight size={20} />
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
-                <div className="deals-scroll-container">
+                <div className="deals-scroll-container" ref={scrollRef}>
                     {deals.map((product, index) => (
                         <Link key={index} to={`/product/${product.id}`} className="deal-card">
                             <div className="deal-image-wrapper">
                                 <img src={product.image} alt={product.name} className="deal-image" />
+                                <span className="deal-discount-badge">
+                                    {Math.round(((product.originalPrice || product.price * 1.2) - product.price) / (product.originalPrice || product.price * 1.2) * 100)}% OFF
+                                </span>
                             </div>
                             <div className="deal-info">
                                 <span className="deal-name">{product.name}</span>
                                 <div className="deal-price-wrapper">
-                                    <span className="deal-price">₹{product.price}</span>
-                                    {product.originalPrice && <span className="deal-original-price">₹{product.originalPrice}</span>}
+                                    <span className="deal-price">₹{product.price.toLocaleString()}</span>
+                                    {product.originalPrice && <span className="deal-original-price">₹{product.originalPrice.toLocaleString()}</span>}
                                 </div>
                                 <span className="deal-tag">Hot Deal</span>
                             </div>

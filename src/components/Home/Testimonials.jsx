@@ -1,4 +1,6 @@
 import React from 'react';
+import { Quote } from 'lucide-react';
+import './Testimonials.css';
 
 const Testimonials = ({ data }) => {
     const defaultTestimonials = [
@@ -25,45 +27,21 @@ const Testimonials = ({ data }) => {
     const displayTestimonials = data && data.length > 0 ? data : defaultTestimonials;
 
     return (
-        <section style={{ padding: '4rem 0', backgroundColor: '#F0FDF4' }}>
+        <section className="testimonials-section">
             <div className="container">
-                <h2 className="section-title">What Our Customers Say</h2>
-                <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-                    gap: '2rem'
-                }}>
+                <h2 className="section-title text-center">What Our Customers Say</h2>
+                <div className="testimonials-grid">
                     {displayTestimonials.map(item => (
-                        <div key={item.id} style={{
-                            backgroundColor: 'white',
-                            padding: '2rem',
-                            borderRadius: 'var(--radius-lg)',
-                            boxShadow: 'var(--shadow-sm)'
-                        }}>
-                            <p style={{
-                                fontStyle: 'italic',
-                                marginBottom: '1.5rem',
-                                color: 'var(--color-text-light)',
-                                lineHeight: '1.6'
-                            }}>"{item.review || item.text}"</p>
-                            <div style={{ display: 'flex', alignItems: 'center' }}>
-                                <div style={{
-                                    width: '40px',
-                                    height: '40px',
-                                    borderRadius: '50%',
-                                    backgroundColor: 'var(--color-primary)',
-                                    color: 'white',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    fontWeight: 'bold',
-                                    marginRight: '1rem'
-                                }}>
+                        <div key={item.id} className="testimonial-card">
+                            <Quote size={40} className="quote-icon" />
+                            <p className="testimonial-text">"{item.review || item.text}"</p>
+                            <div className="testimonial-author">
+                                <div className="author-avatar">
                                     {item.name.charAt(0)}
                                 </div>
-                                <div>
-                                    <h4 style={{ fontWeight: '600', color: 'var(--color-text-main)' }}>{item.name}</h4>
-                                    <span style={{ fontSize: '0.875rem', color: 'var(--color-text-lighter)' }}>{item.role}</span>
+                                <div className="author-info">
+                                    <h4>{item.name}</h4>
+                                    <span className="author-role">{item.role}</span>
                                 </div>
                             </div>
                         </div>

@@ -5,30 +5,28 @@ import Button from '../UI/Button';
 
 const ProductReviews = ({ productId, currentRating, reviewCount }) => {
     const [reviews, setReviews] = useState([]);
-    const [loading, setLoading] = useState(true);
     const [userRating, setUserRating] = useState(0);
     const [submitting, setSubmitting] = useState(false);
     const [hasRated, setHasRated] = useState(false);
 
+    const fetchReviews = React.useCallback(async () => {
+        try {
+            const data = await FirebaseService.getReviews(productId);
+            setReviews(data);
+        } catch (error) {
+            console.error("Error fetching reviews", error);
+        }
+    }, [productId]);
+
     useEffect(() => {
+        // eslint-disable-next-line
         fetchReviews();
         // Check local storage to see if user already rated this product
         const ratedProducts = JSON.parse(localStorage.getItem('ratedProducts') || '[]');
         if (ratedProducts.includes(productId)) {
             setHasRated(true);
         }
-    }, [productId]);
-
-    const fetchReviews = async () => {
-        try {
-            const data = await FirebaseService.getReviews(productId);
-            setReviews(data);
-        } catch (error) {
-            console.error("Error fetching reviews", error);
-        } finally {
-            setLoading(false);
-        }
-    };
+    }, [productId, fetchReviews]);
 
     const handleRating = async (rating) => {
         if (hasRated || submitting) return;

@@ -34,9 +34,9 @@ const ProductDetails = () => {
     }, [id]);
 
     // Ensure images array exists
-    const images = (product?.images && product.images.length > 0)
+    const images = React.useMemo(() => (product?.images && product.images.length > 0)
         ? product.images
-        : (product?.imageUrl ? [product.imageUrl] : ['https://placehold.co/600x600?text=No+Image']);
+        : (product?.imageUrl ? [product.imageUrl] : ['https://placehold.co/600x600?text=No+Image']), [product]);
 
     // Color Filtering Logic
     const [selectedColor, setSelectedColor] = useState(null);

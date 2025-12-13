@@ -43,9 +43,8 @@ const AdminDashboard = () => {
                     <Route path="dashboard" element={<DashboardOverview />} />
 
                     {/* Orders */}
+                    {/* Orders */}
                     <Route path="orders" element={<OrderManager />} />
-                    <Route path="orders/failed" element={<ModulePlaceholder />} />
-                    <Route path="pos" element={<POSSystem />} />
 
                     {/* Products */}
                     <Route path="products" element={<ProductManager />} />
@@ -84,6 +83,8 @@ const DashboardOverview = () => {
         { label: 'Products', value: '0', change: '0' },
         { label: 'Customers', value: '0', change: '0%' }
     ]);
+    const [recentOrders, setRecentOrders] = useState([]);
+    const [topProducts, setTopProducts] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -95,10 +96,19 @@ const DashboardOverview = () => {
                     FirebaseService.getCustomers()
                 ]);
 
-                const totalSales = orders.reduce((sum, order) => sum + (parseFloat(order.total) || 0), 0);
+                // Sort orders by date desc
+                const sortedOrders = orders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                setRecentOrders(sortedOrders.slice(0, 5));
+
+                // Calculate Top Products (Mock logic: just take first 5 for now, real logic needs order items aggregation)
+                // In a real app, you'd aggregate order items to find best sellers.
+                setTopProducts(products.slice(0, 5));
+
+                const paidOrders = orders.filter(order => order.paymentStatus === 'PAID' || order.status === 'DELIVERED');
+                const totalSales = paidOrders.reduce((sum, order) => sum + (parseFloat(order.totalAmount) || 0), 0);
 
                 setStats([
-                    { label: 'Total Sales', value: `₹${totalSales.toFixed(2)}`, change: '+0%' }, // Change logic needs historical data
+                    { label: 'Total Sales', value: `₹${totalSales.toFixed(2)}`, change: '+0%' },
                     { label: 'Total Orders', value: orders.length.toString(), change: '+0%' },
                     { label: 'Products', value: products.length.toString(), change: '+0' },
                     { label: 'Customers', value: customers.length.toString(), change: '+0%' }
@@ -133,17 +143,57 @@ const DashboardOverview = () => {
                 ))}
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
-                <div style={{ backgroundColor: 'white', padding: '2rem', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)', height: '300px' }}>
-                    <h3 style={{ marginBottom: '1rem' }}>Recent Orders</h3>
-                    <div style={{ color: 'var(--color-text-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '80%' }}>
-                        Chart Placeholder
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
+                <div style={{ backgroundColor: 'white', padding: '2rem', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)', height: '400px', overflowY: 'auto' }}>
+                    <h3 style={{ marginBottom: '1.5rem', fontSize: '1.2rem', fontWeight: '700' }}>Recent Orders</h3>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                        {recentOrders.length > 0 ? (
+                            recentOrders.map(order => (
+                                <div key={order.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '1rem', borderBottom: '1px solid var(--color-border)' }}>
+                                    <div>
+                                        <div style={{ fontWeight: '600', color: 'var(--color-text-main)' }}>#{order.id.substring(0, 8)}</div>
+                                        <div style={{ fontSize: '0.85rem', color: 'var(--color-text-light)' }}>{new Date(order.createdAt).toLocaleDateString()}</div>
+                                    </div>
+                                    <div style={{ textAlign: 'right' }}>
+                                        <div style={{ fontWeight: '600' }}>₹{order.totalAmount}</div>
+                                        <span style={{
+                                            fontSize: '0.75rem',
+                                            padding: '0.2rem 0.5rem',
+                                            borderRadius: '999px',
+                                            backgroundColor: order.status === 'DELIVERED' ? '#D1FAE5' : '#FEF3C7',
+                                            color: order.status === 'DELIVERED' ? '#065F46' : '#92400E',
+                                            fontWeight: '600'
+                                        }}>
+                                            {order.status}
+                                        </span>
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            <p style={{ color: 'var(--color-text-light)', textAlign: 'center' }}>No recent orders</p>
+                        )}
                     </div>
                 </div>
-                <div style={{ backgroundColor: 'white', padding: '2rem', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)', height: '300px' }}>
-                    <h3 style={{ marginBottom: '1rem' }}>Top Products</h3>
-                    <div style={{ color: 'var(--color-text-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '80%' }}>
-                        Chart Placeholder
+
+                <div style={{ backgroundColor: 'white', padding: '2rem', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)', height: '400px', overflowY: 'auto' }}>
+                    <h3 style={{ marginBottom: '1.5rem', fontSize: '1.2rem', fontWeight: '700' }}>Top Products</h3>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                        {topProducts.length > 0 ? (
+                            topProducts.map(product => (
+                                <div key={product.id} style={{ display: 'flex', alignItems: 'center', gap: '1rem', paddingBottom: '1rem', borderBottom: '1px solid var(--color-border)' }}>
+                                    <div style={{ width: '50px', height: '50px', borderRadius: 'var(--radius-md)', overflow: 'hidden', backgroundColor: '#F3F4F6', flexShrink: 0 }}>
+                                        <img src={product.image} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                    </div>
+                                    <div style={{ flex: 1 }}>
+                                        <div style={{ fontWeight: '600', color: 'var(--color-text-main)', fontSize: '0.95rem' }}>{product.name}</div>
+                                        <div style={{ fontSize: '0.85rem', color: 'var(--color-text-light)' }}>{product.category}</div>
+                                    </div>
+                                    <div style={{ fontWeight: '600', color: 'var(--color-primary)' }}>₹{product.price}</div>
+                                </div>
+                            ))
+                        ) : (
+                            <p style={{ color: 'var(--color-text-light)', textAlign: 'center' }}>No products found</p>
+                        )}
                     </div>
                 </div>
             </div>

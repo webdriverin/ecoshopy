@@ -1,8 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import './Hero.css';
 
 const Hero = ({ slides = [], onSlideChange }) => {
     const [currentSlide, setCurrentSlide] = useState(0);
+    const [isPaused, setIsPaused] = useState(false);
+
+    const nextSlide = useCallback(() => {
+        setCurrentSlide((prev) => (prev + 1) % slides.length);
+    }, [slides.length]);
+
+    const prevSlide = () => {
+        setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
+    };
 
     useEffect(() => {
         if (onSlideChange) {
@@ -12,25 +22,24 @@ const Hero = ({ slides = [], onSlideChange }) => {
 
     // Auto-play logic
     useEffect(() => {
-        if (slides.length <= 1) return;
-        const interval = setInterval(() => {
-            setCurrentSlide((prev) => (prev + 1) % slides.length);
-        }, 5000);
-
+        if (slides.length <= 1 || isPaused) return;
+        const interval = setInterval(nextSlide, 5000);
         return () => clearInterval(interval);
-    }, [slides]);
+    }, [slides, isPaused, nextSlide]);
 
-    const goToSlide = (index) => {
-        setCurrentSlide(index);
-    };
+    if (!slides.length) return null;
 
     return (
-        <section className="hero-section">
+        <section
+            className="hero-section"
+            onMouseEnter={() => setIsPaused(true)}
+            onMouseLeave={() => setIsPaused(false)}
+        >
             {/* Background Slider */}
             <div className="hero-slider">
                 {slides.map((slide, index) => (
                     <div
-                        key={slide.id}
+                        key={slide.id || index}
                         className={`hero-slide ${index === currentSlide ? 'active' : ''}`}
                     >
                         <div
@@ -42,14 +51,31 @@ const Hero = ({ slides = [], onSlideChange }) => {
                 ))}
             </div>
 
+            {/* Navigation Arrows */}
+            {slides.length > 1 && (
+                <>
+                    <button className="hero-arrow prev" onClick={prevSlide} aria-label="Previous Slide">
+                        <ChevronLeft size={24} />
+                    </button>
+                    <button className="hero-arrow next" onClick={nextSlide} aria-label="Next Slide">
+                        <ChevronRight size={24} />
+                    </button>
+                </>
+            )}
+
+            {/* Dots & Progress */}
             <div className="hero-controls">
                 <div className="hero-dots">
                     {slides.map((_, index) => (
                         <div
                             key={index}
                             className={`hero-dot ${index === currentSlide ? 'active' : ''}`}
-                            onClick={() => goToSlide(index)}
-                        ></div>
+                            onClick={() => setCurrentSlide(index)}
+                        >
+                            {index === currentSlide && !isPaused && (
+                                <div className="progress-ring"></div>
+                            )}
+                        </div>
                     ))}
                 </div>
             </div>

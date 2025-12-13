@@ -11,14 +11,14 @@ import Contact from './pages/Contact';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Profile from './pages/Profile';
+import Orders from './pages/Orders';
 import AdminDashboard from './pages/Admin/AdminDashboard';
 import AdminLogin from './pages/Admin/AdminLogin';
 import DynamicPage from './pages/DynamicPage';
 import FAQ from './pages/FAQ';
 import CollectionProducts from './pages/CollectionProducts';
-
+import Invoice from './pages/Invoice';
 import { CartProvider } from './context/CartContext';
-
 import { Toaster } from 'react-hot-toast';
 
 function App() {
@@ -40,10 +40,12 @@ function App() {
             <Route path="login" element={<Login />} />
             <Route path="signup" element={<Signup />} />
             <Route path="profile" element={<Profile />} />
+            <Route path="orders" element={<Orders />} />
             <Route path="pages/:slug" element={<DynamicPage />} />
             <Route path="faq" element={<FAQ />} />
           </Route>
           <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/invoice/:orderId" element={<Invoice />} />
           <Route path="/admin/*" element={<AdminDashboard />} />
         </Routes>
       </Router>

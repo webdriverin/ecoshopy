@@ -1,5 +1,5 @@
 import { db, auth, storage } from '../firebase';
-import { collection, getDocs, getDoc, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
+import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, getDoc, query, where, orderBy, limit } from 'firebase/firestore';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
@@ -45,7 +45,12 @@ const FirebaseService = {
     // Categories & Brands
     getCategories: async () => {
         const querySnapshot = await getDocs(collection(db, 'categories'));
-        return querySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+        const categories = querySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+        return categories.sort((a, b) => {
+            const orderA = a.order !== undefined ? a.order : 9999;
+            const orderB = b.order !== undefined ? b.order : 9999;
+            return orderA - orderB;
+        });
     },
     addCategory: (category) => addDoc(collection(db, 'categories'), category),
     updateCategory: (id, updates) => updateDoc(doc(db, 'categories', id), updates),
@@ -86,17 +91,48 @@ const FirebaseService = {
     },
     deleteCustomer: (id) => deleteDoc(doc(db, 'users', id)),
 
-    // Orders
-    getOrders: async () => {
-        const querySnapshot = await getDocs(collection(db, 'orders'));
+    // User Addresses
+    getUserAddresses: async (userId) => {
+        const querySnapshot = await getDocs(collection(db, 'users', userId, 'addresses'));
         return querySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
     },
-    createOrder: (order) => addDoc(collection(db, 'orders'), {
-        ...order,
-        createdAt: new Date().toISOString(),
-        status: 'Pending'
+    addUserAddress: (userId, address) => addDoc(collection(db, 'users', userId, 'addresses'), {
+        ...address,
+        createdAt: new Date().toISOString()
     }),
+    updateUserAddress: (userId, addressId, updates) => updateDoc(doc(db, 'users', userId, 'addresses', addressId), updates),
+    deleteUserAddress: (userId, addressId) => deleteDoc(doc(db, 'users', userId, 'addresses', addressId)),
+
+    // Orders
+    getOrders: async (userId = null) => {
+        let q;
+        if (userId) {
+            q = query(collection(db, 'orders'), where('userId', '==', userId));
+        } else {
+            q = collection(db, 'orders');
+        }
+        const querySnapshot = await getDocs(q);
+        return querySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+    },
+    createOrder: async (order) => {
+        const docRef = await addDoc(collection(db, 'orders'), {
+            ...order,
+            createdAt: new Date().toISOString(),
+            status: order.status || 'Pending'
+        });
+        return docRef.id;
+    },
+    updateOrder: (id, updates) => updateDoc(doc(db, 'orders', id), updates),
     updateOrderStatus: (id, status) => updateDoc(doc(db, 'orders', id), { status }),
+    getOrderById: async (id) => {
+        const docRef = doc(db, 'orders', id);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+            return { ...docSnap.data(), id: docSnap.id };
+        } else {
+            throw new Error("Order not found");
+        }
+    },
 
     // CMS
     getTickers: async () => {
@@ -213,7 +249,8 @@ const FirebaseService = {
     // Storage
     uploadImage: async (file, folder = 'uploads') => {
         const storageRef = ref(storage, `${folder}/${Date.now()}_${file.name}`);
-        await uploadBytes(storageRef, file);
+        const metadata = { contentType: file.type };
+        await uploadBytes(storageRef, file, metadata);
         return getDownloadURL(storageRef);
     },
     uploadFile: async (file, folder = 'files') => {

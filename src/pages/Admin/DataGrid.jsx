@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import Button from '../../components/UI/Button';
-import { Plus, Edit, Trash2, Search, Save, X } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, Save, X, ArrowUp, ArrowDown } from 'lucide-react';
 import FirebaseService from '../../services/FirebaseService';
 
-const DataGrid = ({ title, columns, data, onAdd, onEdit, onDelete }) => {
+const DataGrid = ({ title, columns, data, onAdd, onEdit, onDelete, onMoveUp, onMoveDown }) => {
     const [isAdding, setIsAdding] = useState(false);
     const [newItem, setNewItem] = useState({});
     const [searchQuery, setSearchQuery] = useState('');
@@ -141,13 +141,13 @@ const DataGrid = ({ title, columns, data, onAdd, onEdit, onDelete }) => {
                             const file = e.target.files[0];
                             if (file) {
                                 try {
-                                    console.log("Uploading file directly:", file.name);
+                                    console.log("Uploading file directly:", file.name, "Size:", file.size, "Type:", file.type);
                                     const url = await FirebaseService.uploadImage(file, 'banners');
                                     console.log("Upload success:", url);
                                     onChange({ target: { value: url } });
                                 } catch (error) {
                                     console.error("Upload failed", error);
-                                    alert("Image upload failed");
+                                    alert("Image upload failed: " + error.message);
                                 }
                             }
                         }}
@@ -329,6 +329,8 @@ const DataGrid = ({ title, columns, data, onAdd, onEdit, onDelete }) => {
                                         <td style={{ padding: '1rem', textAlign: 'right', whiteSpace: 'nowrap' }}>
                                             <button onClick={() => handleEditClick(item)} style={{ marginRight: '0.5rem', color: 'var(--color-text-light)' }}><Edit size={18} /></button>
                                             <button onClick={() => onDelete(item.id)} style={{ color: 'var(--color-error)' }}><Trash2 size={18} /></button>
+                                            {onMoveUp && <button onClick={() => onMoveUp(item)} title="Move Up" style={{ marginLeft: '0.5rem', color: 'var(--color-primary)' }}><ArrowUp size={18} /></button>}
+                                            {onMoveDown && <button onClick={() => onMoveDown(item)} title="Move Down" style={{ marginLeft: '0.5rem', color: 'var(--color-primary)' }}><ArrowDown size={18} /></button>}
                                         </td>
                                     </tr>
                                 )}

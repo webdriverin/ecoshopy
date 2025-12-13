@@ -18,7 +18,6 @@ const Shop = () => {
     const [sortBy, setSortBy] = useState('popular');
     const [searchQuery, setSearchQuery] = useState(initialSearch);
     const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
-    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchProducts = async () => {
@@ -28,8 +27,6 @@ const Shop = () => {
                 setAllProducts(data);
             } catch (error) {
                 console.error("Error fetching products", error);
-            } finally {
-                setLoading(false);
             }
         };
         fetchProducts();
@@ -40,6 +37,7 @@ const Shop = () => {
         const category = searchParams.get('category');
 
         if (search !== null) {
+            // eslint-disable-next-line
             setSearchQuery(search);
         }
 

@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import FirebaseService from '../services/FirebaseService';
 import './DynamicPage.css'; // We'll create a basic CSS file for this
 
 const DynamicPage = () => {
     const { slug } = useParams();
-    const navigate = useNavigate();
     const [page, setPage] = useState(null);
     const [loading, setLoading] = useState(true);
 

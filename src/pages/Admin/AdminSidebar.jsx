@@ -32,9 +32,7 @@ const AdminSidebar = () => {
             label: 'Orders',
             icon: ShoppingCart,
             submenu: [
-                { label: 'All Orders', path: '/admin/orders' },
-                { label: 'Failed Orders', path: '/admin/orders/failed' },
-                { label: 'POS', path: '/admin/pos' }
+                { label: 'All Orders', path: '/admin/orders' }
             ]
         },
         {
@@ -44,11 +42,7 @@ const AdminSidebar = () => {
                 { label: 'View Products', path: '/admin/products' },
                 { label: 'Add Product', path: '/admin/products/add' },
                 { label: 'Add Multiple Count', path: '/admin/products/add-multiple' },
-                { label: 'Offers', path: '/admin/products/offers' },
-                { label: 'Deals', path: '/admin/products/deals' },
-                { label: 'Collections', path: '/admin/products/collections' },
-                { label: 'Coupons', path: '/admin/products/coupons' },
-                { label: 'Freebies', path: '/admin/products/freebies' }
+                { label: 'Coupons', path: '/admin/products/coupons' }
             ]
         },
         {
@@ -78,15 +72,7 @@ const AdminSidebar = () => {
             icon: Database,
             submenu: [
                 { label: 'Category', path: '/admin/master/category' },
-                { label: 'Brands', path: '/admin/master/brands' },
-                { label: 'Deals', path: '/admin/master/deals' },
-                { label: 'Highlights', path: '/admin/master/highlights' },
-                { label: 'Features', path: '/admin/master/features' },
-                { label: 'Size Charts', path: '/admin/master/size-charts' },
-                { label: 'Badges', path: '/admin/master/badges' },
-                { label: 'Manage HSN', path: '/admin/master/hsn' },
-                { label: 'Tax Group', path: '/admin/master/tax' },
-                { label: 'Courier Partners', path: '/admin/master/courier' }
+                { label: 'Deals', path: '/admin/master/deals' }
             ]
         },
         {
@@ -94,9 +80,7 @@ const AdminSidebar = () => {
             icon: Monitor,
             submenu: [
                 { label: 'Home Page', path: '/admin/cms/home' },
-                { label: 'Categories', path: '/admin/cms/categories' },
-                { label: 'Pages', path: '/admin/cms/pages' },
-                { label: 'FAQs', path: '/admin/cms/faqs' }
+                { label: 'Categories', path: '/admin/cms/categories' }
             ]
         },
         {

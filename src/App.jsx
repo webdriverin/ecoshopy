@@ -20,6 +20,7 @@ import DynamicPage from './pages/DynamicPage';
 import FAQ from './pages/FAQ';
 import CollectionProducts from './pages/CollectionProducts';
 import Invoice from './pages/Invoice';
+import NotFound from './pages/NotFound';
 import { CartProvider } from './context/CartContext';
 import { Toaster } from 'react-hot-toast';
 
@@ -100,6 +101,7 @@ function App() {
             <Route path="orders" element={<Orders />} />
             <Route path="pages/:slug" element={<DynamicPage />} />
             <Route path="faq" element={<FAQ />} />
+            <Route path="*" element={<NotFound />} />
           </Route>
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/invoice/:orderId" element={<Invoice />} />

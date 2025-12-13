@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Mail, Phone, MapPin, Instagram, Facebook, Twitter } from 'lucide-react';
+import { Mail, MapPin } from 'lucide-react';
 import './Footer.css';
 
 const Footer = () => {
@@ -30,24 +30,9 @@ const Footer = () => {
                         <div className="footer-address">
                             <p className="flex-center"><MapPin size={16} style={{ marginRight: '8px' }} /> Palakkad, Kerala</p>
                             <p className="flex-center"><Mail size={16} style={{ marginRight: '8px' }} /> hello@ecoshopy.com</p>
-
-                            <a
-                                href="https://api.whatsapp.com/send?phone=919745455589&text=Hi%20Ecoshopy"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="footer-link flex-center"
-                                style={{ marginTop: '0.5rem', color: '#25D366' }}
-                            >
-                                <Phone size={16} style={{ marginRight: '8px' }} /> Chat on WhatsApp
-                            </a>
-
-                            <div className="social-icons" style={{ marginTop: '1.5rem', display: 'flex', gap: '1rem' }}>
-                                <a href="#" className="social-icon"><Instagram size={24} /></a>
-                                <a href="#" className="social-icon"><Facebook size={24} /></a>
-                                <a href="#" className="social-icon"><Twitter size={24} /></a>
-                            </div>
                         </div>
                     </div>
+
 
                 </div>
 
@@ -56,8 +41,8 @@ const Footer = () => {
                         &copy; {new Date().getFullYear()} Ecoshopy. All rights reserved.
                     </div>
                 </div>
-            </div>
-        </footer>
+            </div >
+        </footer >
     );
 };
 

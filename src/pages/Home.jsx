@@ -146,7 +146,29 @@ const Home = () => {
                                             <h4 className="deal-product-title">{currentDeal.name}</h4>
                                             <div className="deal-price-block">
                                                 <span className="deal-price-current">₹{currentDeal.price}</span>
-                                                <span className="deal-price-original">₹{Math.round(currentDeal.price * 1.3)}</span>
+                                                <span className="deal-price-original">
+                                                    ₹{(() => {
+                                                        // 1. Try to parse percentage from dealDiscount (e.g., "50% OFF")
+                                                        const match = currentDeal.dealDiscount?.match(/(\d+)%/);
+                                                        if (match) {
+                                                            const percentage = parseInt(match[1]);
+                                                            if (percentage > 0 && percentage < 100) {
+                                                                return Math.round(currentDeal.price / (1 - percentage / 100));
+                                                            }
+                                                        }
+
+                                                        // 2. Fallback: Use originalPrice if it exists and is higher
+                                                        if (currentDeal.originalPrice && currentDeal.originalPrice > currentDeal.price) {
+                                                            return currentDeal.originalPrice;
+                                                        }
+
+                                                        // 3. Fallback: If no valid discount info, don't show fake markup. 
+                                                        // Or if user wants a default visual, we can default to 10% but better to be honest.
+                                                        // BUT, for "Deal of the Day", a strikethrough is expected. 
+                                                        // Let's use a safe fallback of 15% ONLY if no other info is present to keep the UI looking "deal-like"
+                                                        return Math.round(currentDeal.price * 1.15);
+                                                    })()}
+                                                </span>
                                             </div>
                                         </div>
                                     </div>

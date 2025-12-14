@@ -83,9 +83,29 @@ const DealsSection = () => {
                         <Link key={index} to={`/product/${product.id}`} className="deal-card">
                             <div className="deal-image-wrapper">
                                 <img src={product.image} alt={product.name} className="deal-image" />
-                                <span className="deal-discount-badge">
-                                    {Math.round(((product.originalPrice || product.price * 1.2) - product.price) / (product.originalPrice || product.price * 1.2) * 100)}% OFF
-                                </span>
+                                {(() => {
+                                    // 1. Try to parse percentage from dealDiscount
+                                    const match = product.dealDiscount?.match(/(\d+)%/);
+                                    if (match) {
+                                        return (
+                                            <span className="deal-discount-badge">
+                                                {match[0]}
+                                            </span>
+                                        );
+                                    }
+
+                                    // 2. Fallback to originalPrice calcluation
+                                    if (product.originalPrice && product.originalPrice > product.price) {
+                                        const percent = Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100);
+                                        return (
+                                            <span className="deal-discount-badge">
+                                                {percent}% OFF
+                                            </span>
+                                        );
+                                    }
+
+                                    return null;
+                                })()}
                             </div>
                             <div className="deal-info">
                                 <span className="deal-name">{product.name}</span>
@@ -99,7 +119,7 @@ const DealsSection = () => {
                     ))}
                 </div>
             </div>
-        </section>
+        </section >
     );
 };
 

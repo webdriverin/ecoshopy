@@ -7,7 +7,7 @@ import MasterDataManager from './MasterDataManager';
 import ProductAddForm from './ProductAddForm';
 import ProductOffersManager from './ProductOffersManager';
 import InventoryManager from './InventoryManager';
-import POSSystem from './POSSystem';
+
 import ReportsManager from './ReportsManager';
 import CMSManager from './CMSManager';
 import UsersManager from './UsersManager';

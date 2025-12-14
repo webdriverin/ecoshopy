@@ -34,17 +34,47 @@ const DealsManager = () => {
     const handleToggleDeal = async (product) => {
         setSavingId(product.id);
         try {
-            const newValue = !product.isDealOfTheDay;
-            await FirebaseService.updateProduct(product.id, {
-                isDealOfTheDay: newValue,
-                dealDiscount: newValue ? (product.dealDiscount || '10% OFF') : null
-            });
+            const isTurningOn = !product.isDealOfTheDay;
+            let updates = {
+                isDealOfTheDay: isTurningOn
+            };
+
+            if (isTurningOn) {
+                // Turning Deal ON
+                // 1. Set default discount label
+                const discountLabel = product.dealDiscount || '10% OFF';
+                updates.dealDiscount = discountLabel;
+
+                // 2. Calculate new price
+                // Base calculation on current price if originalPrice is not already set
+                // If originalPrice exists, it means item might already be discounted or have an MSRP
+                // For simplicity in this "Flash Deal" logic:
+                // We assume current 'price' is the starting point.
+                // We snapshot current 'price' as 'originalPrice' (if null).
+
+                const basePrice = product.originalPrice || product.price;
+                const match = discountLabel.match(/(\d+)%/);
+                const percentage = match ? parseInt(match[1]) : 10;
+
+                updates.originalPrice = basePrice;
+                updates.price = Math.round(basePrice * (1 - percentage / 100));
+
+            } else {
+                // Turning Deal OFF
+                updates.dealDiscount = null;
+
+                // Restore price if we have an originalPrice
+                if (product.originalPrice) {
+                    updates.price = product.originalPrice;
+                    updates.originalPrice = null; // Clear it, or keep it? Usually clear for flash deals.
+                }
+            }
+
+            await FirebaseService.updateProduct(product.id, updates);
 
             // Update local state
             setProducts(products.map(p =>
-                p.id === product.id
-                    ? { ...p, isDealOfTheDay: newValue, dealDiscount: newValue ? (product.dealDiscount || '10% OFF') : null }
-                    : p
+                p.id === product.id ? { ...p, ...updates } : p
             ));
         } catch (error) {
             console.error("Error updating deal status", error);
@@ -65,10 +95,27 @@ const DealsManager = () => {
 
         setSavingId(product.id);
         try {
-            await FirebaseService.updateProduct(product.id, {
-                dealDiscount: product.dealDiscount
-            });
+            // Recalculate price based on new discount label
+            const match = product.dealDiscount?.match(/(\d+)%/);
+            let updates = { dealDiscount: product.dealDiscount };
+
+            if (match) {
+                const percentage = parseInt(match[1]);
+                const basePrice = product.originalPrice || product.price; // Always base off original if available
+
+                updates.originalPrice = basePrice;
+                updates.price = Math.round(basePrice * (1 - percentage / 100));
+            }
+
+            await FirebaseService.updateProduct(product.id, updates);
+
+            // Update local state
+            setProducts(products.map(p =>
+                p.id === product.id ? { ...p, ...updates } : p
+            ));
+
             // Optional: Show success toast
+            // alert(`Price updated to ₹${updates.price}`);
         } catch (error) {
             console.error("Error updating discount", error);
             alert("Failed to update discount");

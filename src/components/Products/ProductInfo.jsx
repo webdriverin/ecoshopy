@@ -78,6 +78,12 @@ const ProductInfo = ({ product }) => {
                 <span className="review-count">({product.reviews || 0} reviews)</span>
             </div>
 
+            {product.sku && (
+                <div style={{ fontSize: '0.875rem', color: 'var(--color-text-light)', marginTop: '0.5rem' }}>
+                    SKU: <span style={{ fontWeight: '600', color: 'var(--color-text-main)' }}>{product.sku}</span>
+                </div>
+            )}
+
             <div className="product-price">
                 {currentMrp && Number(currentMrp) > Number(currentPrice) ? (
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>

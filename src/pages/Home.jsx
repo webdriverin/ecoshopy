@@ -130,69 +130,68 @@ const Home = () => {
                             </div>
 
                             {currentDeal ? (
-                                <div className="deal-content-wrapper">
-                                    <div key={currentDeal.id} className="deal-product-showcase fade-in-key">
-                                        <div className="deal-image-container">
-                                            <img src={currentDeal.image} alt={currentDeal.name} className="deal-product-image" />
-                                            {currentDeal.dealDiscount && (
-                                                <div className="deal-discount-sticker">
-                                                    {currentDeal.dealDiscount}
-                                                    <small>OFF</small>
-                                                </div>
-                                            )}
-                                        </div>
+                                <>
+                                    <Link
+                                        to={`/product/${currentDeal.id}`}
+                                        className="deal-content-wrapper"
+                                        style={{ textDecoration: 'none', color: 'inherit' }}
+                                    >
+                                        <div key={currentDeal.id} className="deal-product-showcase fade-in-key">
+                                            <div className="deal-image-container">
+                                                <img src={currentDeal.image} alt={currentDeal.name} className="deal-product-image" />
+                                                {currentDeal.dealDiscount && (
+                                                    <div className="deal-discount-sticker">
+                                                        {currentDeal.dealDiscount}
+                                                        <small>OFF</small>
+                                                    </div>
+                                                )}
+                                            </div>
 
-                                        <div className="deal-info-compact">
-                                            <h4 className="deal-product-title">{currentDeal.name}</h4>
-                                            <div className="deal-price-block">
-                                                <span className="deal-price-current">₹{currentDeal.price}</span>
-                                                <span className="deal-price-original">
-                                                    ₹{(() => {
-                                                        // 1. Try to parse percentage from dealDiscount (e.g., "50% OFF")
-                                                        const match = currentDeal.dealDiscount?.match(/(\d+)%/);
-                                                        if (match) {
-                                                            const percentage = parseInt(match[1]);
-                                                            if (percentage > 0 && percentage < 100) {
-                                                                return Math.round(currentDeal.price / (1 - percentage / 100));
+                                            <div className="deal-info-compact">
+                                                <h4 className="deal-product-title">{currentDeal.name}</h4>
+                                                <div className="deal-price-block">
+                                                    <span className="deal-price-current">₹{currentDeal.price}</span>
+                                                    <span className="deal-price-original">
+                                                        ₹{(() => {
+                                                            // 1. Try to parse percentage from dealDiscount (e.g., "50% OFF")
+                                                            const match = currentDeal.dealDiscount?.match(/(\d+)%/);
+                                                            if (match) {
+                                                                const percentage = parseInt(match[1]);
+                                                                if (percentage > 0 && percentage < 100) {
+                                                                    return Math.round(currentDeal.price / (1 - percentage / 100));
+                                                                }
                                                             }
-                                                        }
 
-                                                        // 2. Fallback: Use originalPrice if it exists and is higher
-                                                        if (currentDeal.originalPrice && currentDeal.originalPrice > currentDeal.price) {
-                                                            return currentDeal.originalPrice;
-                                                        }
+                                                            // 2. Fallback: Use originalPrice if it exists and is higher
+                                                            if (currentDeal.originalPrice && currentDeal.originalPrice > currentDeal.price) {
+                                                                return currentDeal.originalPrice;
+                                                            }
 
-                                                        // 3. Fallback: If no valid discount info, don't show fake markup. 
-                                                        // Or if user wants a default visual, we can default to 10% but better to be honest.
-                                                        // BUT, for "Deal of the Day", a strikethrough is expected. 
-                                                        // Let's use a safe fallback of 15% ONLY if no other info is present to keep the UI looking "deal-like"
-                                                        return Math.round(currentDeal.price * 1.15);
-                                                    })()}
-                                                </span>
+                                                            // 3. Last resort fallback
+                                                            return Math.round(currentDeal.price * 1.15);
+                                                        })()}
+                                                    </span>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
 
-                                    {/* Countdown Timer */}
-                                    <div className="deal-timer-container">
-                                        <div className="timer-block">
-                                            <span className="timer-value">11</span>
-                                            <span className="timer-label">Hrs</span>
+                                        {/* Countdown Timer */}
+                                        <div className="deal-timer-container">
+                                            <div className="timer-block">
+                                                <span className="timer-value">11</span>
+                                                <span className="timer-label">Hrs</span>
+                                            </div>
+                                            <span className="timer-separator">:</span>
+                                            <div className="timer-block">
+                                                <span className="timer-value">45</span>
+                                                <span className="timer-label">Mins</span>
+                                            </div>
+                                            <span className="timer-separator">:</span>
+                                            <div className="timer-block">
+                                                <span className="timer-value">22</span>
+                                                <span className="timer-label">Secs</span>
+                                            </div>
                                         </div>
-                                        <span className="timer-separator">:</span>
-                                        <div className="timer-block">
-                                            <span className="timer-value">45</span>
-                                            <span className="timer-label">Mins</span>
-                                        </div>
-                                        <span className="timer-separator">:</span>
-                                        <div className="timer-block">
-                                            <span className="timer-value">22</span>
-                                            <span className="timer-label">Secs</span>
-                                        </div>
-                                    </div>
-
-                                    <Link to={`/product/${currentDeal.id}`} className="deal-cta-btn">
-                                        Grab Deal Now
                                     </Link>
 
                                     {/* Carousel Dots */}
@@ -202,12 +201,16 @@ const Home = () => {
                                                 <span
                                                     key={idx}
                                                     className={`deal-dot ${idx === currentDealIndex ? 'active' : ''}`}
-                                                    onClick={() => setCurrentDealIndex(idx)}
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        e.stopPropagation();
+                                                        setCurrentDealIndex(idx);
+                                                    }}
                                                 ></span>
                                             ))}
                                         </div>
                                     )}
-                                </div>
+                                </>
                             ) : (
                                 <div className="no-deals-state">
                                     <p>Stay tuned for new offers!</p>
@@ -240,7 +243,7 @@ const Home = () => {
                 {/* Testimonials */}
                 <Testimonials data={testimonials} />
             </div>
-        </div>
+        </div >
     );
 };
 

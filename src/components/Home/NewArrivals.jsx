@@ -62,7 +62,14 @@ const NewArrivals = () => {
                                 <h3>{product.name}</h3>
                                 <div className="new-arrival-meta">
                                     <span className="new-arrival-category">{product.category}</span>
-                                    <span className="new-arrival-price">₹{product.price}</span>
+                                    <span className="new-arrival-price">
+                                        ₹{product.price}
+                                        {product.originalPrice && Number(product.originalPrice) > Number(product.price) && (
+                                            <span style={{ textDecoration: 'line-through', color: '#999', fontSize: '0.8em', marginLeft: '5px' }}>
+                                                ₹{product.originalPrice}
+                                            </span>
+                                        )}
+                                    </span>
                                 </div>
                             </div>
                         </Link>

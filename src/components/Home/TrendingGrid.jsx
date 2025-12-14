@@ -42,7 +42,14 @@ const TrendingGrid = () => {
                             <div className="trending-info">
                                 <h3 className="trending-name">{product.name}</h3>
                                 <div className="trending-meta">
-                                    <p className="trending-price">₹{product.price}</p>
+                                    <p className="trending-price">
+                                        ₹{product.price}
+                                        {product.originalPrice && Number(product.originalPrice) > Number(product.price) && (
+                                            <span style={{ textDecoration: 'line-through', color: '#999', fontSize: '0.8em', marginLeft: '6px' }}>
+                                                ₹{product.originalPrice}
+                                            </span>
+                                        )}
+                                    </p>
                                     {product.rating > 0 && (
                                         <div className="trending-rating">
                                             <span className="star">★</span>

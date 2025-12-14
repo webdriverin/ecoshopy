@@ -105,7 +105,14 @@ const FeaturedProducts = ({ hideHeader = false }) => {
                                             </div>
                                             <span style={{ fontSize: '0.8rem', color: '#888', marginLeft: '0.5rem' }}>({product.reviews})</span>
                                         </div>
-                                        <div className="featured-price">₹{product.price.toFixed(2)}</div>
+                                        <div className="featured-price">
+                                            ₹{product.price.toFixed(2)}
+                                            {product.originalPrice && Number(product.originalPrice) > Number(product.price) && (
+                                                <span style={{ textDecoration: 'line-through', color: '#999', fontSize: '0.8em', marginLeft: '0.5rem' }}>
+                                                    ₹{Number(product.originalPrice).toFixed(2)}
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             </Link>

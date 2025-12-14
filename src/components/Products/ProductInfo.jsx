@@ -26,7 +26,7 @@ const ProductInfo = ({ product }) => {
 
     // Determine current price, mrp, and stock based on selection
     const currentPrice = selectedVariant ? selectedVariant.price : product.price;
-    const currentMrp = selectedVariant ? selectedVariant.mrp : product.mrp;
+    const currentMrp = selectedVariant ? selectedVariant.mrp : (product.originalPrice || product.mrp);
     const currentStock = selectedVariant ? selectedVariant.stock : product.stock;
 
     const handleQuantityChange = (type) => {
@@ -82,9 +82,9 @@ const ProductInfo = ({ product }) => {
                 {currentMrp && Number(currentMrp) > Number(currentPrice) ? (
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
                         <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
-                            {product.offerText && (
+                            {(product.offerText || (Number(currentMrp) > Number(currentPrice))) && (
                                 <span style={{ color: '#CC0C39', fontSize: '1.5rem', fontWeight: '300' }}>
-                                    {product.offerText}
+                                    {product.offerText || `${Math.round(((Number(currentMrp) - Number(currentPrice)) / Number(currentMrp)) * 100)}% OFF`}
                                 </span>
                             )}
                             <span style={{ fontSize: '1.75rem', fontWeight: '500' }}>
